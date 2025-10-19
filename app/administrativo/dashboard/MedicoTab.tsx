@@ -1,15 +1,16 @@
 "use client";
 
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { UserPlus, Heart } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 async function getMedicos() {
   try {
+    //obtengo los medicos
     const response = await fetch("/api/medico", {
       cache: "no-store",
     });
@@ -18,73 +19,113 @@ async function getMedicos() {
       throw new Error("Error al obtener medicos");
     }
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error: ", error);
-    return [];
-  }
-}
+    const medicos = await response.json();
 
-async function getEspecialidadesMedico(legajo_medico: string) {
-  try {
-    // Usar query parameters en lugar de body para GET
-    const response = await fetch(
-      `/api/medico/medico-especialidad?legajo_medico=${legajo_medico}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+    if (!Array.isArray(medicos)) {
+      return [];
+    }
+    //obtengo las especialidades por cada medico
+    const medicosConEspecialidades = await Promise.all(
+      medicos.map(async (medico) => {
+        try {
+          const especialidadesResponse = await fetch(
+            `/api/medico/medico-especialidad?legajo_medico=${medico.legajo_medico}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          let especialidades = [];
+          if (especialidadesResponse.ok) {
+            especialidades = await especialidadesResponse.json();
+            if (!Array.isArray(especialidades)) {
+              especialidades = [];
+            }
+          }
+          //armo un objeto medico que para agrear un arreglo de especialidades por cada medico
+          return {
+            ...medico,
+            especialidades: especialidades,
+          };
+        } catch (error) {
+          console.error(
+            `Error obteniendo especialidades para médico ${medico.legajo_medico}:`,
+            error
+          );
+          return {
+            ...medico,
+            especialidades: [],
+          };
+        }
+      })
     );
 
-    if (!response.ok) {
-      throw new Error("Error al obtener especialidades");
-    }
-
-    const data = await response.json();
-    return data;
+    return medicosConEspecialidades;
   } catch (error) {
-    console.error("Error obteniendo especialidades:", error);
+    console.error("Error en getMedicos:", error);
     return [];
   }
 }
 
 export default function MedicoTab() {
-  const [allMedicos, setAllMedicos] = useState<any[]>([]);
   const [medicosConEspecialidades, setMedicosConEspecialidades] = useState<
     any[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetchMedicosYEspecialidades = async () => {
+    const fetchMedicos = async () => {
       setLoading(true);
 
-      // Obtener médicos
+      // Obtener médicos con especialidades ya incluidas
       const medicos = await getMedicos();
-      setAllMedicos(Array.isArray(medicos) ? medicos : []);
+      setMedicosConEspecialidades(medicos);
 
-      // Obtener especialidades para cada médico
-      const medicosConEsp = await Promise.all(
-        medicos.map(async (medico: any) => {
-          const especialidades = await getEspecialidadesMedico(
-            medico.legajo_medico
-          );
-          return {
-            ...medico,
-            especialidades: Array.isArray(especialidades) ? especialidades : [],
-          };
-        })
-      );
-
-      setMedicosConEspecialidades(medicosConEsp);
       setLoading(false);
     };
 
-    fetchMedicosYEspecialidades();
+    fetchMedicos();
   }, []);
+  // para filtrar
+  const allMedicos = useMemo(() => {
+    if (!search) return medicosConEspecialidades;
+    const q = search.toLowerCase();
+    return medicosConEspecialidades.filter((m: any) => {
+      const nombreMatch = (m.nombre || "").toLowerCase().includes(q);
+      const apellidoMatch = (m.apellido || "").toLowerCase().includes(q);
+      const nombreCompletoMatch = `${m.nombre || ""} ${m.apellido || ""}`
+        .toLowerCase()
+        .includes(q);
+      const dniMatch = String(m.dni_medico || "")
+        .toLowerCase()
+        .includes(q);
+      const legajoMatch = String(m.legajo_medico || "")
+        .toLowerCase()
+        .includes(q);
+      const telefonoMatch = String(m.telefono || "")
+        .toLowerCase()
+        .includes(q);
+      const especialidadesMatch =
+        m.especialidades &&
+        m.especialidades.some((esp: any) =>
+          (esp.descripcion || "").toLowerCase().includes(q)
+        );
+
+      return (
+        nombreMatch ||
+        apellidoMatch ||
+        nombreCompletoMatch ||
+        dniMatch ||
+        legajoMatch ||
+        telefonoMatch ||
+        especialidadesMatch
+      );
+    });
+  }, [search, medicosConEspecialidades]);
 
   if (loading) {
     return (
@@ -103,6 +144,15 @@ export default function MedicoTab() {
     <TabsContent value="medicos" className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Gestión de Médicos</h2>
+        <section className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Buscar medico..."
+            className="w-45"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </section>
         <Button
           onClick={() =>
             (window.location.href = "/administrativo/medicos/nuevo")
@@ -114,7 +164,7 @@ export default function MedicoTab() {
       </div>
 
       <div className="grid gap-4">
-        {medicosConEspecialidades.map((medico) => (
+        {allMedicos.map((medico) => (
           <Card key={medico.legajo_medico}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -138,9 +188,7 @@ export default function MedicoTab() {
                                 variant="secondary"
                                 className="text-xs"
                               >
-                                {especialidad.descripcion ||
-                                  especialidad.nombre ||
-                                  "Sin nombre"}
+                                {especialidad.descripcion || "Sin nombre"}
                               </Badge>
                             )
                           )
@@ -185,7 +233,6 @@ export default function MedicoTab() {
                     }
                     size="sm"
                     onClick={() => {
-                      // Implementar lógica de habilitar/inhabilitar
                       console.log(
                         "Toggle estado médico:",
                         medico.legajo_medico
