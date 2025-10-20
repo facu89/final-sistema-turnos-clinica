@@ -5,7 +5,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
+//devuelve todos los medicos
 export async function GET(request: NextRequest) {
   console.log("EndPoint llamado");
   const { data, error } = await supabase.from("medico").select("*");
