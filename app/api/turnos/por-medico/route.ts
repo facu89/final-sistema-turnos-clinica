@@ -5,7 +5,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
+//devuelve los turnos de un medico
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

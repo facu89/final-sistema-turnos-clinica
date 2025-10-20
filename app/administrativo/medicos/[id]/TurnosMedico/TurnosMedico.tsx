@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Clock } from "lucide-react"
 import { turnoPaciente } from '@/app/data/Info'
+
 export const TurnosMedico = () => {
   const turnos = turnoPaciente ? [turnoPaciente] : [];
 

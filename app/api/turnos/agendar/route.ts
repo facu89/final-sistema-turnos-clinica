@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     const { legajo_medico, fecha_hora_turno } = body;
 
-    // 🧩 Verificar disponibilidad del turno
+    //  Verificar disponibilidad del turno
     const { data: existente, error: checkError } = await supabase
       .from("turno")
       .select("cod_turno")

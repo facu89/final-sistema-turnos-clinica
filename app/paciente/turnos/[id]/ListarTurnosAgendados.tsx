@@ -13,7 +13,7 @@ export const ListarTurnosAgendados = ({ paciente }: any) => {
 
      async function getTurnosPaciente(dniPaciente: string) {
           try {
-               const response = await fetch(`/api/turnos?dni_paciente=${dniPaciente}`, {
+               const response = await fetch(`/api/turnos/turnosPaciente?dni_paciente=${dniPaciente}`, {
                     cache: "no-store",
                });
                if (!response.ok) throw new Error("Error al obtener turnos");
