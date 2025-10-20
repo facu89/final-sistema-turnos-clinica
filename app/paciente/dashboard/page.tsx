@@ -14,16 +14,15 @@ declare global {
     MercadoPago: any;
   }
 }
-
 export default function PacienteDashboard({ paciente }: any) {
   const [activeTab, setActiveTab] = useState("mis-turnos");
   const [filtroMedico, setFiltroMedico] = useState("");
   const [filtroEspecialidad, setFiltroEspecialidad] = useState("");
   const [mostrarResultados, setMostrarResultados] = useState(false);
 
-  const medicos= medico;
+  const medicos = medico;
   // Estado para los turnos agendados
-  const [turnos, setTurnos] = useState(turnosAgendados);//mock data
+  const [turnos, setTurnos] = useState(turnosAgendados); //mock data
 
   // Estado para modificar turno
   const [turnoAModificar, setTurnoAModificar] = useState<any>(null);
@@ -56,8 +55,6 @@ export default function PacienteDashboard({ paciente }: any) {
       estado: "disponible",
     },
   ]);
-
- 
 
   // Filtrar médicos según la especialidad seleccionada
   const medicosFiltrados = filtroEspecialidad
@@ -145,7 +142,7 @@ export default function PacienteDashboard({ paciente }: any) {
       {/* Header */}
       <HeaderPaciente></HeaderPaciente>
       <div className="container mx-auto px-4 py-6">
-        <StatCards paciente={ paciente }></StatCards>
+        <StatCards paciente={paciente}></StatCards>
         {/* Main Content */}
         <Tabs
           value={activeTab}
@@ -154,14 +151,14 @@ export default function PacienteDashboard({ paciente }: any) {
         >
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="mis-turnos">Mis Turnos</TabsTrigger>
-            <TabsTrigger value="buscar-turnos">Turnos disponibles</TabsTrigger>
+            <TabsTrigger value="buscar-turnos">Sacar turno</TabsTrigger>
             <TabsTrigger value="perfil">Mi Perfil</TabsTrigger>
             {/* <TabsTrigger value="historial">Historial</TabsTrigger> */}
           </TabsList>
 
-          <TurnosTabPac paciente= {paciente}></TurnosTabPac>
+          <TurnosTabPac paciente={paciente}></TurnosTabPac>
           <TurnosLibres></TurnosLibres>
-          <PerfilTab contactoPaciente= { paciente }></PerfilTab>
+          <PerfilTab></PerfilTab>
         </Tabs>
       </div>
     </div>

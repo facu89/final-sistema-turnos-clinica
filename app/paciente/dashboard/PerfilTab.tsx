@@ -1,23 +1,63 @@
-import React from "react";
-import InfoPaciente from '../components/InfoPaciente';
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import InfoPaciente from "../components/InfoPaciente";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
-import { pacientes } from "@/app/data/Info";
+import { useAuth } from "@/hooks/useAuth/useAuth"; //este hook devuelve el id del usuario con la sesion actual
+interface PacienteData {
+  dni_paciente?: string;
+  nombre?: string;
+  apellido?: string;
+  fecha_nacimiento?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+}
+async function getPaciente(userId: string) {
+  const response = await fetch(`/api/paciente?id_paciente=${userId}`, {
+    cache: "no-store",
+  });
 
+  if (!response.ok) {
+    throw new Error(`Error ${response.status}`);
+  }
 
-export const PerfilTab = ({ contactoPaciente }: any ) => { 
-  //aca paciente esta para representar llo que traeria la bd, que seria datos de contacto del paciente como parametro .
-  
-  // Estado para los datos de contacto
-  const [contacto, setContacto] = useState( //mock data
-    pacientes[0]);
- 
+  const datos = await response.json();
+  return datos;
+}
+
+export const PerfilTab = () => {
+  const { user, loading: authLoading, userId } = useAuth();
+  const [pacienteData, setPacienteData] = useState<PacienteData | null>(null); // ✅ Tipo definido
+  const [loading, setLoading] = useState<boolean>(false);
+  useEffect(() => {
+    if (!authLoading && userId) {
+      setLoading(true);
+
+      getPaciente(userId)
+        .then((data) => {
+          const finalData = Array.isArray(data) ? data[0] : data;
+          if (finalData) {
+            setPacienteData(finalData);
+          }
+        })
+        .catch((error) => {})
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [userId, authLoading]);
+
+  if (authLoading) {
+    return (
+      <TabsContent value="perfil" className="space-y-6">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <p>Cargando autenticación...</p>
+        </div>
+      </TabsContent>
+    );
+  }
 
   return (
     <TabsContent value="perfil" className="space-y-6">
@@ -26,33 +66,7 @@ export const PerfilTab = ({ contactoPaciente }: any ) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Información Personal</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">
-                Nombre Completo
-              </label>
-              <p className="text-lg">{contacto.nombre}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">
-                DNI
-              </label>
-              <p className="text-lg">{contacto.dni}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">
-                Fecha de Nacimiento
-              </label>
-              <p className="text-lg">{contacto.fecha_nac}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <InfoPaciente/>
+        <InfoPaciente pacienteData={pacienteData} userId={userId} />
       </div>
     </TabsContent>
   );
