@@ -3,10 +3,10 @@
 - [x] app\paciente\dashboard\StatCards.tsx - conectar bien a mock data aunque sea para que muestre datos dinamicos
 - [x] app\administrativo\dashboard\FiltrosTurnos.tsx - hacer que filtre los turnos
 - [x] Hacer este formulario reutilziable path relativa: components\add-admin-user-form.tsx
-- [ ] app\paciente\dashboard\StatCards.tsx - arreglar estetica de la hora 
-- [ ] armar hook MandarEmail
+- [x] armar hook MandarEmail
+- [x] si hay tiempo podemos agregar el buscar en las tab de  
 - [ ] app\paciente\dashboard\StatCards.tsx - arreglar estetica de la hora
 - [ ] MedicoTab y PacienteTab son MUY parecidas, una vez hecho todo podemos arreglar eso.
-- [ ] si hay tiempo podemos agregar el buscar en las tab de  
 - [ ] \app\paciente\components\Agendar.tsx - Conectar el dni del perfil conectado.
-- [ ] 
+- [ ] Calcular turnos libres
+- [ ] Reasignar turnos

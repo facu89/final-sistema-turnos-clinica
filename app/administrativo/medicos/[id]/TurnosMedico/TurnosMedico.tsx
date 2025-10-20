@@ -45,7 +45,7 @@ export const TurnosMedico = () => {
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    (window.location.href = `../../turnos/${turno.id}`)
+                    (window.location.href = `../../../turnos/${turno.id}`)
                   }
                 >
                   Ver Detalle

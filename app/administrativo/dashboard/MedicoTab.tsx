@@ -220,7 +220,7 @@ export default function MedicoTab() {
                   </Button>
                   <Button
                     onClick={() =>
-                      (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/turnos`)
+                      (window.location.href = `../administrativo/medicos/${medico.legajo_medico}/TurnosMedico`)
                     }
                     variant="outline"
                     size="sm"
