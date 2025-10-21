@@ -213,7 +213,7 @@ export default function MedicoTab() {
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda`)
+                      (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/nuevaAgenda`)
                     }
                   >
                     {medico.agenda ? "Modificar Agenda" : "Crear Agenda"}
