@@ -69,6 +69,17 @@ export async function POST(request : NextRequest){
 
         if(errorAgenda) throw errorAgenda;
 
+        //ACTUALIZA TABLA MEDICO CON LA AGENDA REFERENCIADA
+
+        const {error: errorMedico} = await supabase
+        .from("medico")
+        .update({id_agenda: agenda.id_agenda})
+        .eq("legajo_medico", legajo_medico);
+
+        if (errorMedico) {
+            throw errorMedico;
+        }
+
         const diasAtencionR = diasAtencion.map((dia)=> ({
             id_agenda: agenda.id_agenda,
             dia_semana: dia.dia_semana,

@@ -37,7 +37,7 @@ interface Medico {
      nombre: string;
      especialidad: string;
      consultorio: string;
-     legajo: string;
+     legajo_medico: number;
 }
 
 // Tipamos las props del componente

@@ -30,7 +30,7 @@ const FiltrosTurnos: React.FC<Props> = ({ filters, onChange, turnos }) => {
   const [medicos, setMedicos] = useState<Medico[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Cargar TODOS los médicos registrados desde la API
+  //  Cargar TODOS los médicos registrados desde la API
   useEffect(() => {
     const cargarMedicos = async () => {
       try {

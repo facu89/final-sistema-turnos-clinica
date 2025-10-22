@@ -7,6 +7,16 @@
 - [x] si hay tiempo podemos agregar el buscar en las tab de  
 - [ ] app\paciente\dashboard\StatCards.tsx - arreglar estetica de la hora
 - [ ] MedicoTab y PacienteTab son MUY parecidas, una vez hecho todo podemos arreglar eso.
-- [ ] \app\paciente\components\Agendar.tsx - Conectar el dni del perfil conectado.
-- [ ] Calcular turnos libres
+- [x] \app\paciente\components\Agendar.tsx - Conectar el dni del perfil conectado.
+- [x] en filtros bsuq    eda tiene que mapear las especialidades de la bd
+- [x ] buscar especialidaeds de bd
+- [ x] buscar medicos de la bd 
+- [ x] mapear medicos d ela bd 
+- [ ] Calcular turnos libres ()
 - [ ] Reasignar turnos
+- [ ] \app\paciente\components\ - Cancelar turno
+- [ ] \app\paciente\components\ -Modifcar turno
+- [ ] Modificar Agenda(? 
+- [ ] Notificaciones
+- [ ] Avisos en cancelar/agendar/modificar/inhabilitar/registrar de que no hay vuelta atras!
+- [ ] Reportes 

@@ -20,6 +20,16 @@ export const turnosAgendados = [
     consultorio: "201",
   },
   {
+    id: 2,
+    medico: "Dra. Ana Martínez",
+    especialidad: "Pediatría",
+    fecha: "2024-01-22",
+    hora: "15:00",
+    direccion: "Consultorio 105",
+    paciente: "Juan Pérez",
+    consultorio: "201",
+  },
+  {
     id: 3,
     medico: "Dr. Luis Rodríguez",
     especialidad: "Traumatología",
@@ -28,6 +38,7 @@ export const turnosAgendados = [
     direccion: "Consultorio 302",
     paciente: "Ana Silva",
   },
+  
 ];
 
 export const turnosDisponibles = [
@@ -59,6 +70,16 @@ export const turnosDisponibles = [
     especialidad: "Pediatría",
     fecha: "2024-01-17",
     hora: "09:00",
+    estado: "disponible",
+  },
+  {
+    id: 1,
+    legajo_medico: "4",
+    medico: "Dr. Carlos López",
+    id_especialidad: 1,
+    especialidad: "Cardiología",
+    fecha: "2024-01-16",
+    hora: "12:00",
     estado: "disponible",
   },
   {

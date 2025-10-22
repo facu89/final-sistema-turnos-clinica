@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { turnosAgendados, turnosDisponibles, medico } from "../../data/Info";
 import { Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardDescription, CardTitle, } from "@/components/ui/card";
@@ -8,18 +8,81 @@ import {TurnosDisponibles}from "./TurnosDisponibles";
 
 const FiltrosBusqueda = () => {
 
-     const [activeTab, setActiveTab] = useState("mis-turnos");
      const [filtroMedico, setFiltroMedico] = useState("");
      const [filtroEspecialidad, setFiltroEspecialidad] = useState("");
      const [mostrarResultados, setMostrarResultados] = useState(false);
-     const [turnos, setTurnosAgendados] = useState(turnosAgendados);
      const [disponibles, setTurnosDisponibles] = useState(turnosDisponibles);
-     const [turnoAModificar, setTurnoAModificar] = useState<any>(null);
-     const [turnoAConfirmar, setTurnoAConfirmar] = useState<any>(null);
+     const [medicos, setMedicos] = useState<Medico[]>([]);
+     const [especialidades, setEspecialidades] = useState<any[]>([]);
 
-     const medicosFiltrados = filtroEspecialidad
-          ? medico.filter((m) => m.especialidad === filtroEspecialidad)
-          : [];
+     const [loading, setLoading] = useState(false);
+
+     //  buscar data en bd
+     
+     
+       //  Cargar TODOS los médicos registrados desde la API
+       useEffect(() => {
+         const cargarMedicos = async () => {
+           try {
+             setLoading(true);
+             const response = await fetch("/api/medico");
+             if (!response.ok) {
+               throw new Error("Error al obtener médicos");
+             }
+             const medicosData: Medico[] = await response.json();
+             const medicosActivos = medicosData.filter(
+               (medico) => medico.estado === "activo"
+             );
+             setMedicos(medicosActivos);
+     
+             console.log("Médicos cargados:", medicosActivos.length);
+           } catch (error) {
+             console.error("Error cargando médicos:", error);
+             setMedicos([]);
+           } finally {
+             setLoading(false);
+           }
+         };
+     
+         cargarMedicos();
+       }, []);
+
+       //Cargar TODAS las especialidadessss
+       useEffect(() => {
+         const cargarEspecialidades = async () => {
+           try {
+             setLoading(true);
+             const response = await fetch("/api/especialidades");
+             if (!response.ok) {
+               throw new Error("Error al obtener especialidades");
+             }
+             const EspecialidadesData: any[] = await response.json();
+             
+             setEspecialidades(EspecialidadesData.data);
+     
+             console.log("especialidades cargados:", EspecialidadesData.length);
+           } catch (error) {
+             console.error("Error cargando especialidades:", error);
+             setEspecialidades([]);
+           } finally {
+             setLoading(false);
+           }
+         };
+     
+         cargarEspecialidades();
+       }, []);
+
+
+
+console.log(medicos);
+console.log(especialidades);
+
+     //  laburar con la data
+
+     // es un lujito este, que a l filtrar especialdiad muestre los medicos q atiendan con esa, la consulta deberia tener join con esp.
+     // const medicosFiltrados = filtroEspecialidad 
+     //      ? medicos.filter((m) => m.id_especialidad === filtroEspecialidad)
+     //      : [];
 
      const turnosFiltrados = turnosDisponibles.filter((turno) => {
           const coincideMedico =
@@ -58,10 +121,11 @@ const FiltrosBusqueda = () => {
                                         setFiltroMedico(""); // Reinicia el médico al cambiar especialidad
                                    }}
                               >
-                                   <option value="">Seleccionar especialidad</option>
-                                   <option>Cardiología</option>
-                                   <option>Pediatría</option>
-                                   <option>Traumatología</option>
+                                   <option  value="">Seleccionar especialidad</option>
+                                   {especialidades.length!=0 && especialidades.map((esp) => (
+                                        <option key={ esp.id_especialidad}
+                                        value={ esp.id_especialidad}> {esp.descripcion}</option>
+                                   ))}
                               </select>
                          </div>
                          <div>
@@ -73,8 +137,10 @@ const FiltrosBusqueda = () => {
                                    disabled={!filtroEspecialidad}
                               >
                                    <option value="">Seleccionar médico</option>
-                                   {medicosFiltrados.map((medico) => (
-                                        <option key={medico.nombre}>{medico.nombre}</option>
+                                   {medicos.map((medico) => (
+                                        <option key={medico.legajo_medico}
+                                        value={medico.legajo_medico} 
+                                        >{medico.nombre} {medico.apellido}</option>
                                    ))}
                               </select>
                          </div>
@@ -94,7 +160,6 @@ const FiltrosBusqueda = () => {
      <TurnosDisponibles
           filtroEspecialidad={filtroEspecialidad}
           filtroMedico={filtroMedico}
-          setTurnosAgendados={setTurnosAgendados}
      ></TurnosDisponibles>}
           </>
      )
