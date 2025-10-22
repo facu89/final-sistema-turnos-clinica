@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@supabase/supabase-js";
 
 interface MedicoProps {
   nombre: string;
@@ -12,7 +13,7 @@ interface HeaderAgendaProps {
   medico: MedicoProps;
 }
 
-export function HeaderAgenda({ medico }: HeaderAgendaProps) {
+export function HeaderAgenda({ nombre, apellido }: { nombre: string; apellido: string }) {
   return (
     <header className="border-b bg-card">
       <div className="container mx-auto px-4 py-4">
@@ -26,10 +27,7 @@ export function HeaderAgenda({ medico }: HeaderAgendaProps) {
             Volver
           </Button>
           <div>
-            <h1 className="text-xl font-bold">Agenda de {medico.nombre}</h1>
-            <p className="text-sm text-muted-foreground">
-              {medico.especialidad} • {medico.estado}
-            </p>
+            <h1 className="text-xl font-bold">Agenda de {nombre} {apellido}</h1>
           </div>
         </div>
       </div>
