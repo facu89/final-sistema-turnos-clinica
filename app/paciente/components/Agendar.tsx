@@ -164,7 +164,7 @@ const Agendar = ({ turnoAConfirmar, setTurnoAConfirmar, setTurnosAgendados, setT
       <Button
         onClick={() => {
           setShowSuccess(false);
-          setTurnoAConfirmar(null); // ✅ ahora sí cerramos todo
+          setTurnoAConfirmar(null); 
         }}
       >
         Aceptar

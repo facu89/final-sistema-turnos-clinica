@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import {Card,CardContent,} from "@/components/ui/card";
 import {Calendar,Clock,} from "lucide-react";
 
-async function getTurnosPaciente(dniPaciente: string) {
+async function getTurnosPaciente(dniPaciente: any) {
   try {
     const response = await fetch(`/api/turnos/turnosPaciente?dni_paciente=${dniPaciente}`, {
       cache: "no-store",
@@ -16,21 +16,21 @@ async function getTurnosPaciente(dniPaciente: string) {
   }
 }
 
-export const StatCards = ({ paciente }: { paciente: any }) => {
+export const StatCards = ({dni_paciente} :any) => {
   const [turnos, setTurnos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     const loadTurnos = async () => {
       setIsLoading(true);
-      if (paciente?.dni_paciente) {
-        const data = await getTurnosPaciente(paciente.dni_paciente);
+      if (dni_paciente) {
+        const data = await getTurnosPaciente(dni_paciente);
         setTurnos(data);
       }
       setIsLoading(false);
     };
     loadTurnos();
-  }, [paciente?.dni_paciente]);
+  }, [dni_paciente]);
 
   const turno = turnos[0]; // el turno más próximo (ya ordenado por fecha)
   return (
@@ -52,9 +52,9 @@ export const StatCards = ({ paciente }: { paciente: any }) => {
                          {turno.fecha} </p>
                          <p className="text-lg font-bold"> {turno.hora}< span> hs </span> </p>
                          
-                    <p className="text-sm text-muted-foreground"> 
+                    {/* <p className="text-sm text-muted-foreground"> 
                     con {turno.medico}
-                    </p>
+                    </p> */}
                     </>
                     ) : (
                          <p className="text-lg font-bold">No hay turnos próximos</p> 
