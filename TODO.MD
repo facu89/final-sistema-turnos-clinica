@@ -4,9 +4,11 @@
 - [x] app\administrativo\dashboard\FiltrosTurnos.tsx - hacer que filtre los turnos
 - [x] Hacer este formulario reutilziable path relativa: components\add-admin-user-form.tsx
 - [x] armar hook MandarEmail
-- [x] si hay tiempo podemos agregar el buscar en las tab de  
+- [x] si hay tiempo podemos agregar el buscar en las tab de
 - [ ] app\paciente\dashboard\StatCards.tsx - arreglar estetica de la hora
 - [ ] MedicoTab y PacienteTab son MUY parecidas, una vez hecho todo podemos arreglar eso.
 - [ ] \app\paciente\components\Agendar.tsx - Conectar el dni del perfil conectado.
 - [ ] Calcular turnos libres
 - [ ] Reasignar turnos
+- [ ] Cambiar los reportes de turnos por fecha y unificarlos con el listado de turnos agendados.
+- [ ] En el tap de reporte de turnos modificar por los reportes que faltan: Reporte de demanda por medico y por especialidad.

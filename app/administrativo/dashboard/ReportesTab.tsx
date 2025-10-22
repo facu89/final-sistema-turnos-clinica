@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -9,9 +9,62 @@ import {
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { FileText } from "lucide-react";
-import { medico } from "@/app/data/Info";//simula bd
+
+interface Medico {
+  legajo_medico: string;
+  nombre: string;
+  apellido: string;
+  dni_medico: string;
+  matricula: string;
+  telefono: string;
+  tarifa: number;
+  estado: string;
+  especialidad?: string;
+}
 
 export const ReportesTab = () => {
+  const [medicos, setMedicos] = useState<Medico[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+  const [medicoSeleccionado, setMedicoSeleccionado] = useState("");
+
+  useEffect(() => {
+    const cargarMedicos = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/medico");
+
+        if (!response.ok) {
+          throw new Error("Error al obtener médicos");
+        }
+
+        const medicosData: Medico[] = await response.json();
+        const medicosActivos = medicosData.filter(
+          (medico) => medico.estado === "activo"
+        );
+
+        setMedicos(medicosActivos);
+        console.log("Médicos cargados:", medicosActivos.length);
+      } catch (error) {
+        console.error("Error cargando médicos:", error);
+        setMedicos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarMedicos();
+  }, []);
+
+  const generarReporte = () => {
+    console.log("Generando reporte:", {
+      fechaInicio,
+      fechaFin,
+      medico: medicoSeleccionado,
+    });
+  };
+
   return (
     <TabsContent value="reportes" className="space-y-6">
       <div className="flex justify-between items-center">
@@ -32,6 +85,8 @@ export const ReportesTab = () => {
               <input
                 type="date"
                 className="w-full mt-1 p-2 border rounded-lg"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
               />
             </div>
             <div>
@@ -39,26 +94,40 @@ export const ReportesTab = () => {
               <input
                 type="date"
                 className="w-full mt-1 p-2 border rounded-lg"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
               />
             </div>
             <div>
               <label className="text-sm font-medium">Médico</label>
-              <select className="w-full mt-1 p-2 border rounded-lg">
-                <option>Todos los médicos</option>
-                {medico
-                  .filter((m) => m.activo)//solo muestra los activos
-                  .map((m) => (
-                    <option key={m.nombre} value={m.nombre}>
-                      {/* deberia ir el legajo pero no esta en la mock data */}
-                      {m.nombre} - {m.especialidad}
-                    </option>
-                  ))}
+              <select
+                className="w-full mt-1 p-2 border rounded-lg"
+                value={medicoSeleccionado}
+                onChange={(e) => setMedicoSeleccionado(e.target.value)}
+                disabled={loading}
+              >
+                <option value="">
+                  {loading ? "Cargando médicos..." : "Todos los médicos"}
+                </option>
+                {medicos.map((medico) => (
+                  <option
+                    key={medico.legajo_medico}
+                    value={`${medico.nombre} ${medico.apellido}`}
+                  >
+                    Dr. {medico.nombre} {medico.apellido}
+                    {medico.especialidad && ` - ${medico.especialidad}`}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
-          <Button className="w-full">
+          <Button
+            className="w-full"
+            onClick={generarReporte}
+            disabled={loading}
+          >
             <FileText className="h-4 w-4 mr-2" />
-            Generar Reporte
+            {loading ? "Cargando..." : "Generar Reporte"}
           </Button>
         </CardContent>
       </Card>

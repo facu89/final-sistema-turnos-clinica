@@ -29,12 +29,7 @@ export async function obtenerMedicoTurno(idTurno: string) {
         dni_medico,
         nombre,
         apellido,
-        telefono,
-        id_especialidad,
-        especialidad!id_especialidad (
-          id_especialidad,
-          descripcion
-        )
+        telefono
       `
       )
       .eq("legajo_medico", turnoData.legajo_medico)
@@ -56,7 +51,6 @@ export async function obtenerMedicoTurno(idTurno: string) {
         nombre: medicoData.nombre,
         apellido: medicoData.apellido,
         telefono: medicoData.telefono,
-        especialidad: medicoData.especialidad,
       },
     };
   } catch (error) {
