@@ -167,7 +167,7 @@ export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
           variant="outline"
           size="sm"
           onClick={() =>
-            (window.location.href = `/admin/turnos/${turno.cod_turno}`)
+            (window.location.href = `/administrativo/turnos/${turno.cod_turno}`)
           }
         >
           Ver Detalle
