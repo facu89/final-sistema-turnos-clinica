@@ -105,3 +105,54 @@ export async function POST(request : NextRequest){
         );
     }
 }
+
+export async function GET(request : NextRequest){
+    try{
+        const { searchParams } = new URL(request.url);
+        const legajo_medico = searchParams.get("legajo_medico");
+
+        if(!legajo_medico){
+            return NextResponse.json(
+                {error: "No se encontro legajo_medico"},
+                { status: 400 }
+            );
+        }
+
+        const {data: medico, error: errorMedico} = await supabase
+        .from("medico")
+        .select(`
+            legajo_medico,
+            nombre,
+            apellido,
+            agenda: id_agenda(
+            id_agenda,
+            fechainiciovigencia,
+            fechafinvigencia,
+            duracionturno,
+            dia_semana(
+            dia_semana,
+            hora_inicio,
+            hora_fin)
+            )
+            `)
+        .eq("legajo_medico", legajo_medico)
+        .single();
+
+        if(errorMedico) throw errorMedico;
+
+        if(!medico.agenda){
+            return NextResponse.json(
+                {message: "El medico no tiene agenda", medico},
+                {status: 200}
+            );
+        }
+
+        return NextResponse.json(medico,{status:200});
+
+    } catch (error: any){
+        return NextResponse.json(
+            {error: "error al obtener la agenda", detalle: error.message},
+            {status: 500}
+        );
+    }
+}
