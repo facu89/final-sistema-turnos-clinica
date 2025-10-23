@@ -2,18 +2,19 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 const supabase = createClient(
-     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-     process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 //Obtengo todos los turnos de un paciente
 export async function GET(request: NextRequest) {
-     const { searchParams } = new URL(request.url);
-     const dniPaciente = Number(searchParams.get("dni_paciente"));
-     console.log("EndPoint llamado",dniPaciente);
-const { data, error } = await supabase
+  const { searchParams } = new URL(request.url);
+  const dniPaciente = Number(searchParams.get("dni_paciente"));
+  console.log("EndPoint llamado", dniPaciente);
+  const { data, error } = await supabase
     .from("turno")
-    .select(`
+    .select(
+      `
       cod_turno,
       fecha_hora_turno,
       estado_turno,
@@ -24,14 +25,29 @@ const { data, error } = await supabase
       medico:legajo_medico (
         nombre,
         apellido
-      )`)
-      .eq("dni_paciente", dniPaciente)
-  .order("fecha_hora_turno", { ascending: true });
-     if (error) {
-          return NextResponse.json({ error: error.message }, { status: 400 });
-     }
-     console.log(data);
-     return NextResponse.json(data ?? []);
+      )`
+    )
+    .eq("dni_paciente", dniPaciente)
+    .order("fecha_hora_turno", { ascending: true });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+  return NextResponse.json(data ?? []);
+}
+
+//obtengo el id de un turno y lo elimino
+export async function DELETE(request: NextRequest) {
+  const data = await request.json();
+  const cod_turno = data.cod_turno;
+  console.log("EN API ELIMINAR TURNO CON CODIGO", cod_turno);
+  const { error } = await supabase
+    .from("turno")
+    .delete()
+    .eq("cod_turno", cod_turno);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+  return NextResponse.json({ success: true }, { status: 200 });
 }
 // import { createClient } from "@supabase/supabase-js";
 // import { NextRequest, NextResponse } from "next/server";
