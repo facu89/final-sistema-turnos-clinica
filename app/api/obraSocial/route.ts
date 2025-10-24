@@ -172,7 +172,7 @@ export async function PUT(request: NextRequest) {
         );
         await supabaseAdmin
           .from("turno")
-          .update({ estado_turno: "Pendiente de pago" })
+          .update({ estado_turno: "Pendiente de pago", turno_pagado: false })
           .eq("id_obra", id);
 
         // Obtener nombre de obra social
