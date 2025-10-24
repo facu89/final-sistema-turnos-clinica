@@ -21,6 +21,14 @@ interface TurnoBody {
      turno_modificado?: boolean;
      presencia_turno?: boolean; // opcional
 }
+export interface ObraSocial {
+  id_obra: number;
+  descripcion: string;
+  estado?: string;
+  telefono_contacto?: number;
+  sitio_web?: string;
+  fecha_alta?: string;
+}
 
 async function agendarTurno(payload: TurnoBody) {
      const res = await fetch("/api/turnos/agendar", {
@@ -32,14 +40,15 @@ async function agendarTurno(payload: TurnoBody) {
      if (!res.ok) throw new Error(data.error || "Error al agendar turno");
      return data;
 }
+  
 
 const Agendar = ({ turnoAConfirmar, setTurnoAConfirmar, setTurnosAgendados, setTurnosDisponibles }: AgendarProps) => {
-
+     const [obrasSociales, setObrasSociales] = useState<ObraSocial[]>([]);
      const [selectedObraSocial, setSelectedObraSocial] = useState<string>("null");
      const [showMissingDni, setShowMissingDni] = useState(false);
      const [showSuccess, setShowSuccess] = useState(false);
      const { userId } = useAuth();
-
+console.log(turnoAConfirmar);
      // Getter: obtiene el dni del paciente asociado al userId (desde /api/paciente)
      const getDniPaciente = async (): Promise<number | null> => {
           try {
@@ -62,10 +71,10 @@ const Agendar = ({ turnoAConfirmar, setTurnoAConfirmar, setTurnosAgendados, setT
      // Reserva: construye payload y llama a la API
      const reserveTurno = async (dniPaciente: number) => {
           const payload: TurnoBody = {
-               legajo_medico: turnoAConfirmar.medico.legajo_medico ?? turnoAConfirmar.legajo_medico,
+               legajo_medico: turnoAConfirmar.legajo_medico,
                dni_paciente: dniPaciente,
                id_obra: selectedObraSocial === "null" ? null : selectedObraSocial,
-               fecha_hora_turno: new Date(`${turnoAConfirmar.fecha}T${turnoAConfirmar.hora}`),
+               fecha_hora_turno: new Date(`${turnoAConfirmar.id}`),
                id_especialidad: turnoAConfirmar.id_especialidad ?? turnoAConfirmar.especialidad_id,
                estado_turno: "confirmado",
           };
@@ -100,8 +109,26 @@ const Agendar = ({ turnoAConfirmar, setTurnoAConfirmar, setTurnosAgendados, setT
           }
      };
 
+     //busca las obras scoiales del mdico
+      const getObrasSociales = async ()=> {
+          
+    if (!turnoAConfirmar.legajo_medico) return;
 
+    const fetchObras = async () => {
+      try {
+        
+        const res = await fetch(`/api/medico/medico-obraSocial?legajo_medico=${turnoAConfirmar.legajo_medico}`, {
+          cache: "no-store",
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "Error al obtener obras sociales");
+        setObrasSociales(json);
+      } catch (err: any) {
+        setObrasSociales([]);
+      } 
 
+};}
+getObrasSociales();
      return (
           <>{ !showSuccess && (
                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -119,7 +146,7 @@ const Agendar = ({ turnoAConfirmar, setTurnoAConfirmar, setTurnosAgendados, setT
 
 
                          <ObrasSocialesMedico
-                              obrasSociales={turnoAConfirmar.medico.obrasSociales}
+                              obrasSociales={obrasSociales}
                               onObraSocialChange={setSelectedObraSocial}
                          />
 

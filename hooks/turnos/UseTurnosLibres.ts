@@ -23,6 +23,8 @@ interface TurnoBody {
 interface TurnoLibre {
   iso: string;
   legajo_medico: number;
+  id_especialidad: number;
+
 }
 
 
@@ -68,6 +70,7 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
         const libresMedico = generarTurnosLibres([agenda], turnosOcupados).map((iso) => ({
           iso,
           legajo_medico: legajoMedico,
+          id_especialidad:especialidad,
         }));
 
         setLibres(libresMedico);

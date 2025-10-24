@@ -18,7 +18,7 @@ export const TurnosDisponibles = ({
   filtroEspecialidad,
   filtroMedico,
 }: TurnosDisponiblesProps) => {
-  // 🧠 Estado del componente
+  //  Estado del componente
   const [turnoAConfirmar, setTurnoAConfirmar] = useState<any>(null);
   const [turnosAgendados, setTurnosAgendados] = useState<any[]>([]);
   const [mostrarCantidad, setMostrarCantidad] = useState(15);
@@ -29,7 +29,7 @@ export const TurnosDisponibles = ({
     filtroMedico
   );
 
-  // 🔧 Mostrar “Ver más”
+  //Mostrar “Ver más”
   const mostrarMas = () => setMostrarCantidad((prev) => prev + 15);
 
   //  Transformar cada ISO string en {fecha, hora}
@@ -44,7 +44,7 @@ const turnosFormateados = libres.map(t => {
     hour: "2-digit",
     minute: "2-digit",
   });
-  return { id: t.iso, fecha: fechaStr, hora: horaStr, legajo_medico: t.legajo_medico };
+  return { id: t.iso, fecha: fechaStr, hora: horaStr, legajo_medico: t.legajo_medico,id_especialidad: filtroEspecialidad };
 });
 
 
@@ -99,7 +99,7 @@ const turnosFormateados = libres.map(t => {
         </Card>
       ))}
 
-      {/* 🔽 Botón “Ver más” */}
+      {/*  Botón “Ver más” */}
       {turnosFormateados.length > mostrarCantidad && (
         <div className="flex justify-center">
           <Button variant="outline" onClick={mostrarMas}>
@@ -108,7 +108,7 @@ const turnosFormateados = libres.map(t => {
         </div>
       )}
 
-      {/* 🧾 Modal de agendado */}
+      {/*  Modal de agendado */}
       {turnoAConfirmar && (
         <Agendar
           turnoAConfirmar={turnoAConfirmar}

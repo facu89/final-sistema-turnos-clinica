@@ -1,12 +1,14 @@
 import React from "react";
 
-interface ObraSocial {
-  id: number;
-  nombre: string;
-  codigo: string;
-  activa: boolean;
-}
+ interface ObraSocial {
+  id_obra: number;
+  descripcion: string;
+  estado?: string;
+  telefono_contacto?: number;
+  sitio_web?: string;
+  fecha_alta?: string;
 
+}
 
 
 interface ObrasSocialesMedicoProps {
@@ -36,8 +38,8 @@ const ObrasSocialesMedico = ({ obrasSociales, onObraSocialChange }: ObrasSociale
       >
         {obrasSociales && obrasSociales.length > 0 ? (
           obrasSociales.map((obraSocial) => (
-            <option key={obraSocial.id} value={obraSocial.nombre}>
-              {obraSocial.nombre}
+            <option key={obraSocial.id_obra} value={obraSocial.descripcion}>
+              {obraSocial.descripcion}
             </option>
           ))
         ) : (
