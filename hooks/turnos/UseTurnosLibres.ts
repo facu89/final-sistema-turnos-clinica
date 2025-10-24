@@ -35,7 +35,7 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
   const [error, setError] = useState<string | null>(null);
   const esp = useRef<number>(0);
 
-  // 🔹 Buscar turnos por médico específico
+  //  Buscar turnos por médico específico
   useEffect(() => {
     if (!legajoMedico) return;
 
@@ -50,11 +50,15 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
         if (!resAgenda.ok) throw new Error(jsonAgenda.error || "Error al cargar agenda");
 
         const agenda: Agenda | null =
-          jsonAgenda.agenda || jsonAgenda.medico?.agenda || null;
-        if (!agenda) {
-          setLibres([]);
-          return;
-        }
+  Array.isArray(jsonAgenda)
+    ? jsonAgenda[0]
+    : jsonAgenda.agenda || jsonAgenda.medico?.agenda || null;
+
+if (!agenda) {
+  console.warn(" No se encontró agenda válida", jsonAgenda);
+  setLibres([]);
+  return;
+}
 
         // Obtener turnos ocupados de ese médico
         const resTurnos = await fetch(
@@ -84,7 +88,7 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
     fetchDatosMedico();
   }, [legajoMedico]);
 
-  // 🔹 Buscar turnos por especialidad (todos los médicos)
+  //  Buscar turnos por especialidad (todos los médicos)
   useEffect(() => {
     if (!especialidad || legajoMedico) return;
     if (especialidad === esp.current) return;
@@ -96,7 +100,7 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
         setLoading(true);
         setError(null);
 
-        // 1️⃣ Obtener agendas de todos los médicos de esa especialidad
+        //  Obtener agendas de todos los médicos de esa especialidad
         const resAgendas = await fetch(
           `/api/agenda/por-especialidad?id_especialidad=${encodeURIComponent(
             especialidad
@@ -106,7 +110,7 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
         if (!resAgendas.ok) throw new Error(jsonAgendas.error || "Error al obtener agendas");
         const agendasData: Agenda[] = Array.isArray(jsonAgendas) ? jsonAgendas : [];
 
-        // 2️⃣ Obtener turnos ocupados de esa especialidad
+        //  Obtener turnos ocupados de esa especialidad
         const resTurnos = await fetch(
           `/api/turnos/por-especialidad?id_especialidad=${encodeURIComponent(
             especialidad
@@ -117,11 +121,12 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
         if (!resTurnos.ok) throw new Error(jsonTurnos.error || "Error al obtener turnos");
         const turnosOcupados: TurnoBody[] = Array.isArray(jsonTurnos) ? jsonTurnos : [];
 
-        // 3️⃣ Generar turnos libres y asociar el médico
+        //  Generar turnos libres y asociar el médico
         const libresConMedico = agendasData.flatMap((agenda) =>
           generarTurnosLibres([agenda], turnosOcupados).map((iso) => ({
             iso,
             legajo_medico: agenda.legajo_medico,
+            id_especialidad:especialidad
           }))
         );
 
@@ -152,6 +157,10 @@ export function generarTurnosLibres(
   agendas: Agenda[],
   turnosOcupados: TurnoBody[]
 ): string[] {
+  console.log("🩺 Agenda:", agendas);
+console.log("📅 Días activos:", agendas.dia_semana);
+console.log("💤 Turnos ocupados:", turnosOcupados.length);
+
   const libres: string[] = [];
   const hoy = new Date();
   const ayer= new Date();

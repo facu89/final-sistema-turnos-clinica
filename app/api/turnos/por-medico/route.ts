@@ -9,8 +9,9 @@ const supabase = createClient(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const legajo = searchParams.get("legajo");
+    const legajo = Number(searchParams.get("legajo_medico"));
     if (!legajo) return NextResponse.json({ error: "Falta legajo" }, { status: 400 });
+console.log("👨‍⚕️ legajo_medico:", legajo);
 
     const nowIso = new Date().toISOString();
     const { data, error } = await supabase

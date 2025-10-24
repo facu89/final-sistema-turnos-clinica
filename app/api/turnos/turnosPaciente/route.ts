@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
       turno_modificado,
       id_especialidad,
       dni_paciente,
+      legajo_medico,
       medico:legajo_medico (
         nombre,
         apellido

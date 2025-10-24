@@ -80,67 +80,24 @@ export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
     console.log(turnosAgendados);
   }, [turnosAgendados]);
 
-  // const [filtroMedico, setFiltroMedico] = useState("");
-  // const [filtroEspecialidad, setFiltroEspecialidad] = useState("");
-  // const [turnoAModificar, setTurnoAModificar] = useState<any>(null);
-  // const [turnos, setTurnos] = useState(turnosAgendados);
+  const [turnoAModificar, setTurnoAModificar] = useState<any>(null);
 
-  //   // Filtrar turnos según los filtros seleccionados y que estén disponibles
-  //   const turnosFiltrados = turnosDisponibles.filter((turno) => {
-  //      const medico=`${turno.medico.nombre ?? ""} ${turno.medico.apellido ?? ""}`.trim()
-  //     const coincideMedico =
-  //       !filtroMedico ||
-  //       filtroMedico === "Seleccionar médico" ||
-  //       medico === filtroMedico;
-  //     const coincideEspecialidad =
-  //       !filtroEspecialidad ||
-  //       filtroEspecialidad === "Todas las especialidades" ||
-  //       turno.especialidad === filtroEspecialidad;
-  //     return (
-  //       coincideMedico && coincideEspecialidad && turno.estado_turno === "disponible"
-  //     );
-  //   });
 
-  //   // Turnos disponibles para modificar (solo los que coinciden con el médico y especialidad del turno a modificar,
-  //   // y que también aparecen en la lista filtrada de turnos disponibles)
-  //   const turnosParaModificar = turnoAModificar
-  //     ? turnosFiltrados.filter(
-  //         (t) =>
-  //           t.medico === turnoAModificar.medico &&
-  //           t.especialidad === turnoAModificar.especialidad
-  //       )
-  //     : [];
+ 
 
-  //   // Función para cancelar turno
-  //   const cancelarTurno = (cod_turno: number) => {
-  //     setTurnos((prev) => prev.filter((turno) => turno.cod_turno !== cod_turno));
-  //   };
 
-  //   // Función para seleccionar un turno disponible y modificar el turno agendado
-  //   const seleccionarNuevoTurno = (nuevoTurno: any) => {
-  //     setTurnos((prev) =>
-  //       prev.map((t) =>
-  //         t.cod_turno === turnoAModificar.cod_turno
-  //           ? { ...t, fecha: nuevoTurno.fecha, hora: nuevoTurno.hora }
-  //           : t
-  //       )
-  //     );
-  //     setTurnoAModificar(null);
-  //   };
 
-  //   if (turnoAModificar) {
-  //     return (
-  //       <ModificarTurno
-  //         turnoAModificar={turnoAModificar}
-  //         setTurnoAModificar={setTurnoAModificar}
-  //         turnosParaModificar={turnosParaModificar}
-  //         seleccionarNuevoTurno={seleccionarNuevoTurno}
-  //       />
-  //     );
-  //   }
 
+    if (turnoAModificar) {
+      return (
+        <ModificarTurno
+          turnoAModificar={turnoAModificar}
+          setTurnoAModificar={setTurnoAModificar}
+        />
+      );
+    }
   return (
-    <Table className="w-full text-sm">
+    <Table className="w-full text-m">
       <TableHeader>
         <TableRow>
           <TableHead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -178,7 +135,7 @@ export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  //  onClick={() => setTurnoAModificar(turno)}  //lo comento porque rompe todo
+                    onClick={() => setTurnoAModificar(turno)}  //lo comento porque rompe todo
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   Modificar
