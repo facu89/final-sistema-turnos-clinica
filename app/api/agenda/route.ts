@@ -106,24 +106,53 @@ export async function POST(request : NextRequest){
     }
 }
 
+export async function GET(request : NextRequest){
+    try{
+        const { searchParams } = new URL(request.url);
+        const legajo_medico = searchParams.get("legajo_medico");
 
-//devuelve la agenda de un medico
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const legajo = searchParams.get("legajo");
-    if (!legajo) return NextResponse.json({ error: "Falta legajo" }, { status: 400 });
+        if(!legajo_medico){
+            return NextResponse.json(
+                {error: "No se encontro legajo_medico"},
+                { status: 400 }
+            );
+        }
 
-    const nowIso = new Date().toISOString();
-    const { data, error } = await supabase
-      .from("agenda")
-      .select("*")
-      .eq("legajo_medico", legajo)
-      .order("legajo_medico", { ascending: true });
+        const {data: medico, error: errorMedico} = await supabase
+        .from("medico")
+        .select(`
+            legajo_medico,
+            nombre,
+            apellido,
+            agenda: id_agenda(
+            id_agenda,
+            fechainiciovigencia,
+            fechafinvigencia,
+            duracionturno,
+            dia_semana(
+            dia_semana,
+            hora_inicio,
+            hora_fin)
+            )
+            `)
+        .eq("legajo_medico", legajo_medico)
+        .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data || []);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
-  }
+        if(errorMedico) throw errorMedico;
+
+        if(!medico.agenda){
+            return NextResponse.json(
+                {message: "El medico no tiene agenda", medico},
+                {status: 200}
+            );
+        }
+
+        return NextResponse.json(medico,{status:200});
+
+    } catch (error: any){
+        return NextResponse.json(
+            {error: "error al obtener la agenda", detalle: error.message},
+            {status: 500}
+        );
+    }
 }

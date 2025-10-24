@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
 
     // 4️⃣ Estructurar datos en el formato requerido
     const agendasData = agendas.map(a => ({
+      legajo_medico : a.legajo_medico,
       fechainiciovigencia: a.fechainiciovigencia,
       fechafinvigencia: a.fechafinvigencia,
       duracionturno: a.duracionturno,

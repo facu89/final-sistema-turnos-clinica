@@ -198,6 +198,9 @@ export default function MedicoTab() {
                           </span>
                         )}
                       </div>
+                      <div className="mt-2-text-sm text-muted-foreground space-y-1">
+                          <strong>DNI:</strong> {medico.dni_medico || 'Sin DNI'}  <strong>Matrícula:</strong> {medico.matricula || 'Sin Matrícula'}  <strong>Teléfono:</strong> {medico.telefono|| 'Sin teléfono'}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -209,38 +212,75 @@ export default function MedicoTab() {
                   >
                     {medico.estado || "activo"}
                   </Badge>
+                  {medico?.id_agenda ? (
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/modificarAgenda`)
+                      }
+                    >
+                      Modificar Agenda
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="default"
+                      onClick={() =>
+                        (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/nuevaAgenda`)
+                      }
+                    >
+                      Registrar Agenda
+                    </Button>
+                  )}
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/nuevaAgenda`)
-                    }
-                  >
-                    {medico.agenda ? "Modificar Agenda" : "Crear Agenda"}
-                  </Button>
-                  <Button
-                    onClick={() =>
-                      (window.location.href = `../administrativo/medicos/${medico.legajo_medico}/TurnosMedico`)
-                    }
-                    variant="outline"
-                    size="sm"
+                  onClick={() => (window.location.href = `../administrativo/medicos/${medico.legajo_medico}/TurnosMedico`)}
+                  variant="outline"
+                  size="sm"
                   >
                     Ver Turnos
                   </Button>
-                  <Button
-                    variant={
-                      medico.estado === "activo" ? "destructive" : "default"
-                    }
-                    size="sm"
-                    onClick={() => {
-                      console.log(
-                        "Toggle estado médico:",
-                        medico.legajo_medico
-                      );
-                    }}
-                  >
-                    {medico.estado === "activo" ? "Inhabilitar" : "Habilitar"}
-                  </Button>
+                 <Button
+  variant={medico.estado === "activo" ? "destructive" : "default"}
+  size="sm"
+  onClick={async () => {
+    const nuevoEstado = medico.estado === "activo" ? "inactivo" : "activo";
+
+    // Hacemos el fetch sin confirmación
+    const res = await fetch("/api/medico/medico-estado", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        legajo_medico: medico.legajo_medico,
+        estado: nuevoEstado,
+      }),
+    });
+
+    const raw = await res.text();
+    let json: any = null;
+    try {
+      json = raw ? JSON.parse(raw) : null;
+    } catch {}
+
+    // En vez de alert, solo logueamos (o podés omitir esto)
+    if (!res.ok || !json?.ok) {
+      console.log("❌ No se pudo actualizar:", json?.message);
+      return;
+    }
+
+    // Refresco local del estado en pantalla
+    setMedicosConEspecialidades((prev) =>
+      prev.map((m) =>
+        Number(m.legajo_medico) === Number(medico.legajo_medico)
+          ? { ...m, estado: nuevoEstado }
+          : m
+      )
+    );
+  }}
+>
+  {medico.estado === "activo" ? "Inhabilitar" : "Habilitar"}
+</Button>
+
+
+
                 </div>
               </div>
             </CardContent>

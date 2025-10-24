@@ -48,9 +48,6 @@ const EditarContacto: React.FC<EditarContactoProps> = ({
   const handleGuardar = async () => {
     try {
       setDatos(datosTemp);
-      console.log(
-        "HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-      );
       const guardadoExitoso = await guardarDatosEnBaseDatos(datosTemp, id);
 
       if (guardadoExitoso) {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Agendar from "./Agendar";
 import NoMatches from "./NoMatches";
 import { useTurnosLibres } from "@/hooks/turnos/UseTurnosLibres";
+import { TurnoCard } from "./TurnoCard";
 
 interface TurnosDisponiblesProps {
   filtroEspecialidad: number;
@@ -31,24 +32,26 @@ export const TurnosDisponibles = ({
   // 🔧 Mostrar “Ver más”
   const mostrarMas = () => setMostrarCantidad((prev) => prev + 15);
 
-  // 🕒 Transformar cada ISO string en {fecha, hora}
-  const formatearTurnos = libres.map((iso: string) => {
-    const fecha = new Date(iso);
-    const fechaStr = fecha.toLocaleDateString("es-AR", {
-      weekday: "long",
-      day: "2-digit",
-      month: "2-digit",
-    });
-    const horaStr = fecha.toLocaleTimeString("es-AR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    return { id: iso, fecha: fechaStr, hora: horaStr };
+  //  Transformar cada ISO string en {fecha, hora}
+const turnosFormateados = libres.map(t => {
+  const fecha = new Date(t.iso);
+  const fechaStr = fecha.toLocaleDateString("es-AR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
   });
+  const horaStr = fecha.toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return { id: t.iso, fecha: fechaStr, hora: horaStr, legajo_medico: t.legajo_medico };
+});
 
-  // 🧭 Estado visual
+
+  //  Estado visual
   if (loading)
-    return <p className="text-muted-foreground">Cargando turnos disponibles...</p>;
+    return <p className="text-muted-foreground">Cargando turnos disponibles..
+    .</p>;
   if (error)
     return (
       <p className="text-destructive">
@@ -64,41 +67,40 @@ export const TurnosDisponibles = ({
       // </p>
     );
 
-  // 🎯 Render principal
+  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Turnos Disponibles</h3>
 
-      {formatearTurnos.slice(0, mostrarCantidad).map((turno) => (
+      {turnosFormateados.slice(0, mostrarCantidad).map((turno) => (
         <Card key={turno.id}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-secondary/10 p-2 rounded-lg">
-                  <Clock className="h-4 w-4 text-secondary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{turno.fecha}</p>
-                  <p className="text-muted-foreground">{turno.hora}</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => setTurnoAConfirmar(turno)}
-                  variant="default"
-                >
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Agendar
-                </Button>
-              </div>
-            </div>
+             <div className="flex items-center gap-4">
+               <div className=" p-2 rounded-lg">
+                 <Clock className="h-4 w-4 text-secondary" />
+        <TurnoCard turno={ turno }></TurnoCard>
+               </div>
+               
+             </div>
+             <div className="flex gap-2">
+                 <Button
+                   size="sm"
+                   onClick={() => setTurnoAConfirmar(turno)}
+                   variant="default"
+                 >
+                   <CheckCircle className="h-4 w-4 mr-1" />
+                   Agendar
+                 </Button>
+               </div>
+             </div> 
+          
           </CardContent>
         </Card>
       ))}
 
       {/* 🔽 Botón “Ver más” */}
-      {formatearTurnos.length > mostrarCantidad && (
+      {turnosFormateados.length > mostrarCantidad && (
         <div className="flex justify-center">
           <Button variant="outline" onClick={mostrarMas}>
             Ver más turnos

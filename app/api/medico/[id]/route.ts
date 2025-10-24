@@ -12,11 +12,15 @@ export async function GET(request: NextRequest, {params}: {params: {id:string}})
           },
         }
       );
-
+ const legajo = Number(params.id);
+  if (isNaN(legajo)) {
+    return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+  }
+  
     const {data: medico, error: errorMedico} = await supabase
     .from("medico")
     .select("*")
-    .eq("legajo_medico", params.id)
+    .eq("legajo_medico",legajo)
     .single();
 
     if(errorMedico || !medico){

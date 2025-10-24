@@ -1,51 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HeaderAgenda } from "../HeaderAgenda";
 import { Calendar, Clock } from "lucide-react";
-import { AgendaCreada } from "@/components/agendaCreada";
+import { Button } from "@/components/ui/button";
 
-function minutosToTime(minutos: number) {
-  const horas = Math.floor(minutos / 60)
-    .toString()
-    .padStart(2, "0");
-  const mins = (minutos % 60).toString().padStart(2, "0");
-  return `${horas}:${mins}:00`;
-}
-
-export default function NuevaAgendaForm({
+export default function EditarAgendaForm({
   params,
 }: {
   params: { id: string };
 }) {
   const legajo_medico = params.id;
-  const [duracionTurno, setDuracionTurno] = useState(30);
+  const [duracionTurno, setDuracionTurno] = useState<number>(30);
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
-  const [mensaje, setMensaje] = useState("");
-  const [loading, setLoading] = useState(false);
   const [medico, setMedico] = useState<any>(null);
-  const [agendaCreada, setAgendaCreada] = useState(false);
-
-  useEffect(() => {
-    const fetchMedico = async () => {
-      const res = await fetch(`/api/medico/${params.id}/medico-legajo`);
-      const json = await res.json();
-      setMedico(json);
-      setLoading(false);
-    };
-
-    if (legajo_medico) fetchMedico();
-  }, [legajo_medico]);
+  const [loading, setLoading] = useState(true);
 
   const diasSemana = [
     "Lunes",
     "Martes",
-    "Miércoles",
+    "Miercoles",
     "Jueves",
     "Viernes",
     "Sábado",
@@ -60,58 +38,57 @@ export default function NuevaAgendaForm({
     }))
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setMensaje("");
+  useEffect(() => {
+    const fetchMedico = async () => {
+      try {
+        const res = await fetch(`/api/agenda?legajo_medico=${legajo_medico}`);
+        const data = await res.json();
+        setMedico(data);
 
-    const diasSeleccionados = diasAtencion
-      .map((dia, index) => ({
-        dia_semana: index + 1,
-        hora_inicio: dia.hora_inicio,
-        hora_fin: dia.hora_fin,
-      }))
-      .filter((_, i) => diasAtencion[i].activo);
+        if (data.agenda) {
+          // Configurar valores iniciales
+          setDuracionTurno(
+            parseInt(data.agenda.duracionturno.split(":")[1]) || 30
+          );
+          setFechaInicio(data.agenda.fechainiciovigencia.split("T")[0]);
+          setFechaFin(data.agenda.fechafinvigencia.split("T")[0]);
 
-    try {
-      const res = await fetch("/api/agenda", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          legajo_medico: Number(legajo_medico),
-          fechainiciovigencia: new Date().toISOString().split("T")[0],
-          fechafinvigencia: fechaFin,
-          duracionturno: minutosToTime(Number(duracionTurno)),
-          diasAtencion: diasSeleccionados,
-        }),
-      });
+          console.log(data.agenda.dia_semana);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al crear la agenda");
+          const nuevosDias = diasSemana.map((_, index) => {
+            const diaEncontrado = data.agenda.dia_semana?.find(
+              (d: any) => d.dia_semana === index
+            );
+            return {
+              activo: !!diaEncontrado,
+              hora_inicio: diaEncontrado
+                ? diaEncontrado.hora_inicio.substring(0, 5)
+                : "08:00",
+              hora_fin: diaEncontrado
+                ? diaEncontrado.hora_fin.substring(0, 5)
+                : "16:00",
+            };
+          });
 
-      setAgendaCreada(true);
-    } catch (error: any) {
-      setMensaje(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+          setDiasAtencion(nuevosDias);
+        }
+      } catch (error) {
+        console.error("Error al obtener datos del médico:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (agendaCreada) {
-    return (
-      <AgendaCreada
-        nombre={medico?.nombre}
-        apellido={medico?.apellido}
-        destino={"/administrativo/dashboard"}
-      />
-    );
-  }
+    fetchMedico();
+  }, [legajo_medico]);
+
+  if (loading) return <p className="text-center mt-8">Cargando Agenda...</p>;
 
   return (
     <div>
       <HeaderAgenda nombre={medico?.nombre} apellido={medico?.apellido} />
       <div className="flex flex-col items-center bg-gray-50 min-h-screen py-10">
-        <form onSubmit={handleSubmit} className="w-full max-w-3xl space-y-6">
+        <form className="w-full max-w-3xl space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -119,10 +96,9 @@ export default function NuevaAgendaForm({
                 Configuración General
               </CardTitle>
               <p className="text-sm text-gray-500">
-                Configurá los parámetros generales de la agenda del médico{" "}
+                Modificá los parámetros generales de la agenda del médico{" "}
                 <b>
-                  {medico?.nombre}
-                  {" " + medico?.apellido}
+                  {medico?.nombre} {medico?.apellido}
                 </b>
                 .
               </p>
@@ -137,14 +113,12 @@ export default function NuevaAgendaForm({
                   className="border rounded p-2 w-full"
                   value={duracionTurno}
                   onChange={(e) => setDuracionTurno(Number(e.target.value))}
-                  required
                 >
-                  <option value="">Seleccionar duración</option>
-                  <option value={15}>15 </option>
-                  <option value={20}>20 </option>
-                  <option value={30}>30 </option>
-                  <option value={45}>45 </option>
-                  <option value={60}>60 </option>
+                  <option value={15}>15</option>
+                  <option value={20}>20</option>
+                  <option value={30}>30</option>
+                  <option value={45}>45</option>
+                  <option value={60}>60</option>
                 </select>
               </div>
 
@@ -156,7 +130,6 @@ export default function NuevaAgendaForm({
                   type="date"
                   value={fechaInicio}
                   onChange={(e) => setFechaInicio(e.target.value)}
-                  required
                 />
               </div>
 
@@ -168,7 +141,6 @@ export default function NuevaAgendaForm({
                   type="date"
                   value={fechaFin}
                   onChange={(e) => setFechaFin(e.target.value)}
-                  required
                 />
               </div>
             </CardContent>
@@ -181,12 +153,12 @@ export default function NuevaAgendaForm({
                 Horarios de Atención
               </CardTitle>
               <p className="text-sm text-gray-500">
-                Configurá los días y horarios de atención
+                Configurá los días y horarios de atención.
               </p>
             </CardHeader>
 
             <CardContent className="space-y-3">
-              {diasSemana.map((nombre, index) => {
+              {diasSemana.map((_, index) => {
                 const dia = diasAtencion[index];
                 return (
                   <div
@@ -202,7 +174,7 @@ export default function NuevaAgendaForm({
                           setDiasAtencion(nuevos);
                         }}
                       />
-                      <span className="font-medium">{nombre}</span>
+                      <span className="font-medium">{diasSemana[index]}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -235,14 +207,8 @@ export default function NuevaAgendaForm({
           </Card>
 
           <div className="flex justify-center">
-            <Button type="submit" disabled={loading}>
-              {loading ? "Guardando..." : "Guardar Agenda"}
-            </Button>
+            <Button>Guardar</Button>
           </div>
-
-          {mensaje && (
-            <p className="text-center font-medium text-gray-700">{mensaje}</p>
-          )}
         </form>
       </div>
     </div>

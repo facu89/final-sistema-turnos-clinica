@@ -4,19 +4,16 @@
 - [x] app\administrativo\dashboard\FiltrosTurnos.tsx - hacer que filtre los turnos
 - [x] Hacer este formulario reutilziable path relativa: components\add-admin-user-form.tsx
 - [x] armar hook MandarEmail
-- [x] si hay tiempo podemos agregar el buscar en las tab de  
+- [x] si hay tiempo podemos agregar el buscar en las tab de
 - [ ] app\paciente\dashboard\StatCards.tsx - arreglar estetica de la hora
 - [ ] MedicoTab y PacienteTab son MUY parecidas, una vez hecho todo podemos arreglar eso.
 - [x] \app\paciente\components\Agendar.tsx - Conectar el dni del perfil conectado.
-- [x] en filtros bsuq    eda tiene que mapear las especialidades de la bd
+- [x] en filtros bsuq eda tiene que mapear las especialidades de la bd
 - [x ] buscar especialidaeds de bd
-- [ x] buscar medicos de la bd 
-- [ x] mapear medicos d ela bd 
+- [ x] buscar medicos de la bd
+- [ x] mapear medicos d ela bd
 - [ ] Calcular turnos libres ()
 - [ ] Reasignar turnos
-- [ ] \app\paciente\components\ - Cancelar turno
-- [ ] \app\paciente\components\ -Modifcar turno
-- [ ] Modificar Agenda(? 
-- [ ] Notificaciones
-- [ ] Avisos en cancelar/agendar/modificar/inhabilitar/registrar de que no hay vuelta atras!
-- [ ] Reportes 
+- [ ] Cambiar los reportes de turnos por fecha y unificarlos con el listado de turnos agendados.
+- [ ] En el tap de reporte de turnos modificar por los reportes que faltan: Reporte de demanda por medico y por especialidad.
+- [ ] hay q hacer q cuando se selecciona una especialidad al listar turnos disponibles, solo te muestre los medicos que corresponde (estaria bueno)
