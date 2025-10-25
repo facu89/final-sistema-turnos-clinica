@@ -11,15 +11,12 @@ export const TurnosAcciones = () => {
                 <CardDescription>Gestiona este turno</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full bg-transparent" variant="outline">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Reasignar Turno
-                </Button>
+
                 <Button className="w-full green" >
                   <UserX className="h-4 w-4 mr-2" />
                   Marcar Presencia
                 </Button>
-                
+
               </CardContent>
             </Card>
   )
