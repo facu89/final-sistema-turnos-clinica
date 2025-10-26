@@ -43,11 +43,13 @@ async function setListaEsperaEspecialidad(
 async function setListaEsperaMedico(
   medico: string,
   patologia: string,
-  userId: string
+  userId: string,
+  especialidad: string
 ) {
   const data = await fetch(`/api/dniPaciente?id_paciente=${userId}`);
   const { dni_paciente } = await data.json();
   console.log("DNI del paciente:", dni_paciente);
+  console.log("id_especialidad", especialidad);
   await fetch("/api/lista-espera/medico", {
     method: "POST",
     headers: {
@@ -57,6 +59,7 @@ async function setListaEsperaMedico(
       medico,
       patologia,
       dni_paciente,
+      id_especialidad: especialidad,
     }),
   });
 }
@@ -158,7 +161,8 @@ const DialogSolicitud: React.FC<DialogSolicitudProps> = ({
       await setListaEsperaMedico(
         medicoSeleccionado,
         patologiaSeleccionada,
-        userId
+        userId,
+        id_especialidad
       );
     } else {
       await setListaEsperaEspecialidad(

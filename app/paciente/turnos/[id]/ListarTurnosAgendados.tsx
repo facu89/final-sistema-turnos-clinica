@@ -34,7 +34,13 @@ export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
         }),
       });
     }
-
+    const turno = await fetch(`/api/lista-espera/notificar-cancelacion`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ cod_turno }),
+    });
     setLoadingCancelar(true);
     console.log("eliminar el turno con el codigo", cod_turno);
     try {
@@ -46,7 +52,7 @@ export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
         body: JSON.stringify({ cod_turno }),
       });
       if (!response.ok) throw new Error("Error al cancelar turno");
-      //vuelvo a setear los turnos para que se reflejen los cambios
+
       setTurnosAgendados((prev) =>
         prev.filter((turno) => turno.cod_turno !== cod_turno)
       );

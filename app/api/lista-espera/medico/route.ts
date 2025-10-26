@@ -7,7 +7,11 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { medico, patologia, dni_paciente } = body;
+  const { medico, patologia, dni_paciente, id_especialidad } = body;
+  console.log(
+    "che mira estoy en la api de lista espera medico y me llego esta data",
+    id_especialidad
+  );
   const { error, data } = await supabase
     .from("solicitudes_medico")
     .insert([
@@ -16,6 +20,7 @@ export async function POST(request: NextRequest) {
         legajo_medico: medico,
         cod_patologia: patologia,
         fechahorasolicitud: new Date().toISOString(),
+        id_especialidad: id_especialidad,
       },
     ])
     .select("*");
