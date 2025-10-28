@@ -29,7 +29,6 @@ export async function GET(
     );
   }
 
-  // ✅ Join directo desde turno a especialidad
   const { data: ausencias, error: errorAusencias } = await supabase
     .from("turno")
     .select(

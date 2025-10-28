@@ -9,11 +9,6 @@ const supabase = createClient(
 
 export async function GET() {
   try {
-    const hoy = new Date();
-    const fechaHoy = hoy.toISOString().split("T")[0];
-
-    console.log("Buscando turnos desde:", fechaHoy);
-
     const { data, error } = await supabase
       .from("turno")
       .select(
@@ -33,10 +28,10 @@ export async function GET() {
           dni_paciente,
           nombre,
           apellido
-        )
+        ),
+        especialidad(id_especialidad,descripcion)
       `
       )
-      .gte("fecha_hora_turno", fechaHoy)
       .order("fecha_hora_turno", { ascending: true });
 
     if (error) {
@@ -74,7 +69,6 @@ export async function GET() {
           apellidoMedico = turno.medico.apellido || "Sin apellido";
         }
       }
-
       const resultado = {
         cod_turno: turno.cod_turno,
         estado_turno: turno.estado_turno,
@@ -85,6 +79,7 @@ export async function GET() {
         apellido_paciente: apellidoPaciente,
         nombre_medico: nombreMedico,
         apellido_medico: apellidoMedico,
+        especialidad: turno.especialidad, // <-- AGREGA ESTA LÍNEA
       };
 
       return resultado;

@@ -9,6 +9,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import { FileText } from "lucide-react";
+import { ReporteTurnosPorFecha } from "./ReporteTurnosPorFecha";
+import { ReporteDemandaMedico } from "./ReporteDemandaMedico";
+import { ReporteDemandaEspecialidad } from "./ReporteDemandaEspecialidad";
 
 interface Medico {
   legajo_medico: string;
@@ -21,116 +24,119 @@ interface Medico {
   estado: string;
   especialidad?: string;
 }
+interface Especialidad {
+  id_especialidad: number;
+  descripcion: string;
+}
 
 export const ReportesTab = () => {
   const [medicos, setMedicos] = useState<Medico[]>([]);
+  const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
   const [loading, setLoading] = useState(false);
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [medicoSeleccionado, setMedicoSeleccionado] = useState("");
+  const [especialidadSeleccionada, setEspecialidadSeleccionada] = useState("");
+
+  const [tipoReporte, setTipoReporte] = useState("");
 
   useEffect(() => {
+    const cargaEspecialidades = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/especialidades");
+        if (!response.ok) throw new Error("Error al obtener especialidades");
+        const especialidadesData: Especialidad[] = await response.json();
+        console.log("Especialidades traidas", especialidadesData);
+        setEspecialidades(especialidadesData);
+      } catch (error) {
+        setEspecialidades([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     const cargarMedicos = async () => {
       try {
         setLoading(true);
         const response = await fetch("/api/medico");
-
-        if (!response.ok) {
-          throw new Error("Error al obtener médicos");
-        }
-
+        if (!response.ok) throw new Error("Error al obtener médicos");
         const medicosData: Medico[] = await response.json();
         const medicosActivos = medicosData.filter(
           (medico) => medico.estado === "activo"
         );
-
         setMedicos(medicosActivos);
-        console.log("Médicos cargados:", medicosActivos.length);
       } catch (error) {
-        console.error("Error cargando médicos:", error);
         setMedicos([]);
       } finally {
         setLoading(false);
       }
     };
-
+    cargaEspecialidades();
     cargarMedicos();
   }, []);
 
-  const generarReporte = () => {
-    console.log("Generando reporte:", {
-      fechaInicio,
-      fechaFin,
-      medico: medicoSeleccionado,
-    });
-  };
+  function renderFormulario() {
+    switch (tipoReporte) {
+      case "turnos":
+        return (
+          <ReporteTurnosPorFecha
+            medicos={medicos}
+            especialidades={especialidades}
+            loading={loading}
+            fechaInicio={fechaInicio}
+            setFechaInicio={setFechaInicio}
+            fechaFin={fechaFin}
+            setFechaFin={setFechaFin}
+            medicoSeleccionado={medicoSeleccionado}
+            setMedicoSeleccionado={setMedicoSeleccionado}
+            especialidadSeleccionada={especialidadSeleccionada}
+            setEspecialidadSeleccionada={setEspecialidadSeleccionada}
+          />
+        );
+      case "demanda-medico":
+        return <ReporteDemandaMedico />;
+      case "demanda-especialidad":
+        return <ReporteDemandaEspecialidad />;
+      default:
+        return null;
+    }
+  }
 
   return (
     <TabsContent value="reportes" className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Reportes</h2>
       </div>
-
       <Card>
         <CardHeader>
-          <CardTitle>Generar Reporte de Turnos</CardTitle>
-          <CardDescription>
-            Genera un reporte detallado de turnos por fecha y médico
-          </CardDescription>
+          <CardTitle>Selecciona el tipo de reporte</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium">Fecha Inicio</label>
-              <input
-                type="date"
-                className="w-full mt-1 p-2 border rounded-lg"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Fecha Fin</label>
-              <input
-                type="date"
-                className="w-full mt-1 p-2 border rounded-lg"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Médico</label>
-              <select
-                className="w-full mt-1 p-2 border rounded-lg"
-                value={medicoSeleccionado}
-                onChange={(e) => setMedicoSeleccionado(e.target.value)}
-                disabled={loading}
-              >
-                <option value="">
-                  {loading ? "Cargando médicos..." : "Todos los médicos"}
-                </option>
-                {medicos.map((medico) => (
-                  <option
-                    key={medico.legajo_medico}
-                    value={`${medico.nombre} ${medico.apellido}`}
-                  >
-                    Dr. {medico.nombre} {medico.apellido}
-                    {medico.especialidad && ` - ${medico.especialidad}`}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Button
+              variant={tipoReporte === "turnos" ? "default" : "outline"}
+              onClick={() => setTipoReporte("turnos")}
+            >
+              Reporte de Turnos por Fecha
+            </Button>
+            <Button
+              variant={tipoReporte === "demanda-medico" ? "default" : "outline"}
+              onClick={() => setTipoReporte("demanda-medico")}
+            >
+              Informe de Demanda por Médico
+            </Button>
+            <Button
+              variant={
+                tipoReporte === "demanda-especialidad" ? "default" : "outline"
+              }
+              onClick={() => setTipoReporte("demanda-especialidad")}
+            >
+              Informe de Demanda por Especialidad
+            </Button>
           </div>
-          <Button
-            className="w-full"
-            onClick={generarReporte}
-            disabled={loading}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            {loading ? "Cargando..." : "Generar Reporte"}
-          </Button>
         </CardContent>
       </Card>
+      {renderFormulario()}
     </TabsContent>
   );
 };

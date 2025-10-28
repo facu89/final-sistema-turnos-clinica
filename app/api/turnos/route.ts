@@ -8,13 +8,16 @@ const supabase = createClient(
 
 export async function GET() {
   try {
-    const { data, error } = await supabase.from("especialidad").select("*");
+    const { data, error } = await supabase.from("turno").select("*");
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json({
+      success: true,
+      data: data || [],
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Error interno del servidor" },

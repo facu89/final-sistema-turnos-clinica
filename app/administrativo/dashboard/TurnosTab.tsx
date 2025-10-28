@@ -29,16 +29,21 @@ interface Filters {
   fechaInicio?: string;
   fechaFin?: string;
 }
-
 async function getTurnosPacientes(): Promise<Turno[]> {
   const response = await fetch("/api/turnos/todos");
   if (!response.ok) {
     throw new Error("Error al obtener turnos");
   }
-  const data: Turno[] = await response.json();
-  return data;
-}
 
+  const data: Turno[] = await response.json();
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  return data.filter((turno) => {
+    const turnoDate = new Date(turno.fecha_hora_turno);
+    return turnoDate >= hoy;
+  });
+}
 export const TurnosTab = () => {
   const [filters, setFilters] = useState<Filters>({});
   const [turnos, setTurnos] = useState<Turno[]>([]);
@@ -148,7 +153,11 @@ export const TurnosTab = () => {
       {/* Filtros + botón de reasignar */}
       <div className="flex items-end gap-3">
         <div className="flex-1">
-          <FiltrosTurnos filters={filters} onChange={setFilters} turnos={turnos} />
+          <FiltrosTurnos
+            filters={filters}
+            onChange={setFilters}
+            turnos={turnos}
+          />
         </div>
 
         <Button
@@ -200,7 +209,9 @@ export const TurnosTab = () => {
 
           <TableBody>
             {filteredTurnos.map((turno: Turno) => {
-              const { fecha, hora } = formatearFechaHora(turno.fecha_hora_turno);
+              const { fecha, hora } = formatearFechaHora(
+                turno.fecha_hora_turno
+              );
               const esReasignado =
                 (turno.estado_turno || "").toLowerCase() === "reasignado";
               const estaSeleccionado = selected.has(turno.cod_turno);
@@ -210,7 +221,9 @@ export const TurnosTab = () => {
                   key={turno.cod_turno}
                   className="bg-white border-b hover:bg-gray-50"
                 >
-                  <TableCell className="font-medium">#{turno.cod_turno}</TableCell>
+                  <TableCell className="font-medium">
+                    #{turno.cod_turno}
+                  </TableCell>
 
                   <TableCell>
                     {turno.nombre_paciente} {turno.apellido_paciente}
@@ -265,15 +278,15 @@ export const TurnosTab = () => {
                         turno.estado_turno === "Pendiente de pago"
                           ? "bg-orange-50 text-orange-700 border-orange-300"
                           : turno.estado_turno === "Pagado" ||
-                            turno.estado_turno === "Confirmado"
-                          ? "bg-green-50 text-green-700 border-green-300"
-                          : turno.estado_turno === "Cancelado"
-                          ? "bg-red-50 text-red-700 border-red-300"
-                          : turno.estado_turno === "Pendiente"
-                          ? "bg-yellow-50 text-yellow-700 border-yellow-300"
-                          : turno.estado_turno === "Reasignado"
-                          ? "bg-blue-50 text-blue-700 border-blue-300"
-                          : "bg-gray-50 text-gray-700 border-gray-300"
+                              turno.estado_turno === "Confirmado"
+                            ? "bg-green-50 text-green-700 border-green-300"
+                            : turno.estado_turno === "Cancelado"
+                              ? "bg-red-50 text-red-700 border-red-300"
+                              : turno.estado_turno === "Pendiente"
+                                ? "bg-yellow-50 text-yellow-700 border-yellow-300"
+                                : turno.estado_turno === "Reasignado"
+                                  ? "bg-blue-50 text-blue-700 border-blue-300"
+                                  : "bg-gray-50 text-gray-700 border-gray-300"
                       }`}
                     >
                       {turno.estado_turno || "Sin estado"}
