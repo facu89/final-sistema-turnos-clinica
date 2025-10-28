@@ -244,7 +244,7 @@ export default function MedicoTab() {
                   >
                     Ver Turnos
                   </Button>
-                 <Button
+                <Button
   variant={medico.estado === "activo" ? "destructive" : "default"}
   size="sm"
   onClick={async () => {

@@ -108,8 +108,7 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
             try {
                 // todas las especialidades
                 const resTODAS = await fetch("/api/especialidades");
-                const todasJson = await resTODAS.json();
-                const listaEspecialidades: Especialidad[] = todasJson.data || [];
+                const listaEspecialidades: Especialidad[] = await resTODAS.json();
 
                 // especialidades asignadas al médico
                 const resEspecialidadesAsignadas = await fetch(
@@ -121,6 +120,7 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                 }
 
                 setEspecialidades(listaEspecialidades);
+                console.log(listaEspecialidades);
 
                 // guardo sólo los ids que están asignados para marcar los checkboxes
                 const idsAsignadas = EspecialidadesAsignadas.map((e) => String(e.id_especialidad));

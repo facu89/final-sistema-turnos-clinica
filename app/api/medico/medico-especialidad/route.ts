@@ -19,17 +19,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Asegurarnos de usar el tipo correcto para la comparación. En DB el legajo suele ser numérico.
+    const legajoValue = isNaN(Number(legajo_medico)) ? legajo_medico : Number(legajo_medico);
+    //console.log("LEGAJO DEL MEDICO");
+    console.log(legajoValue);
+
     const { data, error } = await supabase
       .from("medico_especialidad")
       .select(
-        `
-        especialidad (
-          id_especialidad,
-          descripcion
-        )
-      `
+        `especialidad ( id_especialidad, descripcion )`
       )
-      .eq("legajo_medico", legajo_medico);
+      .eq("legajo_medico", legajoValue);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
