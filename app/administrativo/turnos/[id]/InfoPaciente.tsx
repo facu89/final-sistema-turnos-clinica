@@ -18,11 +18,11 @@ const InfoPaciente = ({ turno }: any) => {
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                    <p className="text-sm text-muted-foreground">Nombre completo</p>
-                                   <p className="font-medium">{turno.paciente.nombre}</p>
+                                   <p className="font-medium">{turno.paciente.nombre}{" "}{turno.paciente.apellido}</p>
                               </div>
                               <div>
                                    <p className="text-sm text-muted-foreground">DNI</p>
-                                   <p className="font-medium">{turno.paciente.dni}</p>
+                                   <p className="font-medium">{turno.paciente.dni_paciente}</p>
                               </div>
                               <div className="flex items-center gap-2">
                                    <Mail className="h-4 w-4 text-muted-foreground" />
@@ -36,13 +36,6 @@ const InfoPaciente = ({ turno }: any) => {
                                    <div>
                                         <p className="text-sm text-muted-foreground">Teléfono</p>
                                         <p className="font-medium">{turno.paciente.telefono}</p>
-                                   </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                                   <div>
-                                        <p className="text-sm text-muted-foreground">Dirección</p>
-                                        <p className="font-medium">{turno.paciente.direccion}</p>
                                    </div>
                               </div>
 
