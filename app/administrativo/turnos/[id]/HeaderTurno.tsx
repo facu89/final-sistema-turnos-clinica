@@ -1,9 +1,6 @@
 import React from 'react'
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Calendar, Clock, User, Phone, Mail, MapPin, Edit, UserX, RotateCcw } from "lucide-react"
-import { TurnosAcciones } from "./TurnosAcciones"
-import InfoTurno from './InfoTurno';
-import { turnoPaciente } from "@/app/data/Info"
+import { ArrowLeft} from "lucide-react"
 
 const HeaderTurno = ({ turno }: any) => {
      return (
@@ -16,10 +13,7 @@ const HeaderTurno = ({ turno }: any) => {
                                    Volver
                               </Button>
                               <div>
-                                   <h1 className="text-xl font-bold">Detalle del Turno #{turno.id}</h1>
-                                   <p className="text-sm text-muted-foreground">
-                                        {turno.fecha} - {turno.hora}
-                                   </p>
+                                   <h1 className="text-xl font-bold">Detalle del Turno #{turno?.cod_turno}</h1>
                               </div>
                          </div>
                     </div>

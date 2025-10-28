@@ -10,12 +10,35 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const cod_turno = Number(searchParams.get("cod_turno"));
-    console.log("EndPoint llamado para obtener turno por código", cod_turno);
     const { data: turnoData, error: turnoError } = await supabase
-      .from("turno")
-      .select("*")
-      .eq("cod_turno", cod_turno)
-      .single();
+    .from("turno")
+    .select(`
+        cod_turno,
+        fecha_hora_turno,
+        turno_pagado,
+        turno_modificado,
+        presencia_turno,
+        estado_turno,
+        paciente:dni_paciente(
+                dni_paciente,
+                nombre,
+                apellido,
+                telefono,
+                email
+                ),
+        medico:legajo_medico(
+                nombre,
+                apellido),
+        obra:id_obra(
+            descripcion
+        ),
+        especialidad:id_especialidad(
+            descripcion
+        )
+    `)
+    .eq("cod_turno", cod_turno)
+    .single();
+
     if (turnoError) {
       throw turnoError;
     }
