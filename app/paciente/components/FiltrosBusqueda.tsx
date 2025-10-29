@@ -35,7 +35,6 @@ const FiltrosBusqueda = () => {
              );
              setMedicos(medicosActivos);
      
-             console.log("Médicos cargados:", medicosActivos.length);
            } catch (error) {
              console.error("Error cargando médicos:", error);
              setMedicos([]);
@@ -57,10 +56,9 @@ const FiltrosBusqueda = () => {
                throw new Error("Error al obtener especialidades");
              }
              const EspecialidadesData: any[] = await response.json();
-             
-             setEspecialidades(EspecialidadesData.data);
+             console.log(EspecialidadesData);
+             setEspecialidades(EspecialidadesData);
      
-             console.log("especialidades cargados:", EspecialidadesData.length);
            } catch (error) {
              console.error("Error cargando especialidades:", error);
              setEspecialidades([]);

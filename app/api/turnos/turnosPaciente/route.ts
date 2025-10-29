@@ -8,6 +8,7 @@ const supabase = createClient(
 
 //Obtengo todos los turnos de un paciente
 export async function GET(request: NextRequest) {
+  const nowIso = new Date().toISOString();
   const { searchParams } = new URL(request.url);
   const dniPaciente = Number(searchParams.get("dni_paciente"));
   console.log("EndPoint llamado", dniPaciente);
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
       )`
     )
     .eq("dni_paciente", dniPaciente)
+    .gte("fecha_hora_turno", nowIso) 
     .order("fecha_hora_turno", { ascending: true });
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });

@@ -1,10 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import {
-  turnosAgendados,
-  turnosDisponibles,
-  medico,
-} from "../../data/Info";
+
 import {  TabsContent } from "@/components/ui/tabs";
 import FiltrosBusqueda from "../components/FiltrosBusqueda";
 
