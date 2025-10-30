@@ -126,7 +126,7 @@ if (!agenda) {
           generarTurnosLibres([agenda], turnosOcupados).map((iso) => ({
             iso,
             legajo_medico: agenda.legajo_medico,
-            id_especialidad:especialidad
+            id_especialidad:especialidad,
           }))
         );
 

@@ -57,7 +57,7 @@ const FiltrosBusqueda = () => {
              }
              const EspecialidadesData: any[] = await response.json();
              console.log(EspecialidadesData);
-             setEspecialidades(EspecialidadesData);
+             setEspecialidades(EspecialidadesData.data);
      
            } catch (error) {
              console.error("Error cargando especialidades:", error);
@@ -82,19 +82,7 @@ console.log(especialidades);
      //      ? medicos.filter((m) => m.id_especialidad === filtroEspecialidad)
      //      : [];
 
-     const turnosFiltrados = turnosDisponibles.filter((turno) => {
-          const coincideMedico =
-               !filtroMedico ||
-               filtroMedico === "Seleccionar médico" ||
-               turno.medico === filtroMedico;
-          const coincideEspecialidad =
-               !filtroEspecialidad ||
-               filtroEspecialidad === "Todas las especialidades" ||
-               turno.especialidad === filtroEspecialidad;
-          return (
-               coincideMedico && coincideEspecialidad && turno.estado === "disponible"
-          );
-     });
+    
 
 
      return (

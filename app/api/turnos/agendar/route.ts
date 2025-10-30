@@ -15,17 +15,18 @@ const supabaseAdmin = createClient(
 
 
 interface TurnoBody {
-  legajo_medico: string;
-  dni_paciente: string;
-  fecha_hora_turno: string;
-  id_especialidad: number;
-  id_obra?: number | null;
-  turno_pagado?: boolean;
-  estado_turno: string;
-  turno_modificado?: boolean;
-  presencia_turno?: boolean; // opcional
+     legajo_medico: number;
+     nombre_medico?: string;
+     dni_paciente: number;
+     fecha_hora_turno: Date;
+     id_especialidad: number;
+     desc_especialidad?:string;
+     id_obra: string | null;
+     turno_pagado?: boolean;
+     estado_turno: string;
+     turno_modificado?: boolean;
+     presencia_turno?: boolean; // opcional
 }
-
 export async function POST(request: Request) {
   const supabase = supabaseAdmin;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
@@ -163,135 +163,122 @@ export default function MedicoTab() {
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        {allMedicos.map((medico) => (
-          <Card key={medico.legajo_medico}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-accent/10 p-2 rounded-lg">
-                    <Heart className="h-4 w-4 text-accent" />
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[200px]">Nombre Completo</TableHead>
+              <TableHead>Especialidades</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Turnos</TableHead>
+              <TableHead>Agenda</TableHead>
+              <TableHead>Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {allMedicos.map((medico) => (
+              <TableRow key={medico.legajo_medico}>
+                <TableCell className="font-medium">
+                  {medico.nombre} {medico.apellido}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {medico.especialidades && medico.especialidades.length > 0 ? (
+                      medico.especialidades.map((especialidad: any, index: number) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {especialidad.descripcion || "Sin nombre"}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-gray-500">Sin especialidades</span>
+                    )}
                   </div>
-                  <div>
-                    <p className="font-medium">
-                      {medico.nombre} {medico.apellido}
-                    </p>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div className="flex flex-wrap gap-1 items-center">
-                        <strong>Especialidades:</strong>
-                        {medico.especialidades &&
-                        medico.especialidades.length > 0 ? (
-                          medico.especialidades.map(
-                            (especialidad: any, index: number) => (
-                              <Badge
-                                key={index}
-                                variant="secondary"
-                                className="text-xs"
-                              >
-                                {especialidad.descripcion || "Sin nombre"}
-                              </Badge>
-                            )
-                          )
-                        ) : (
-                          <span className="text-gray-500">
-                            Sin especialidades
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-2-text-sm text-muted-foreground space-y-1">
-                          <strong>DNI:</strong> {medico.dni_medico || 'Sin DNI'}  <strong>Matrícula:</strong> {medico.matricula || 'Sin Matrícula'}  <strong>Teléfono:</strong> {medico.telefono|| 'Sin teléfono'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={
-                      medico.estado === "activo" ? "default" : "secondary"
-                    }
-                  >
+                </TableCell>
+                <TableCell>
+                  <Badge variant={medico.estado === "activo" ? "default" : "secondary"}>
                     {medico.estado || "activo"}
                   </Badge>
+                </TableCell>
+                <TableCell>
                   <Button
-                  onClick={()=>
-                  (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/datos/modificarDatos`)
-                  }>
-                    Modificar Datos
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => (window.location.href = `../administrativo/medicos/${medico.legajo_medico}/TurnosMedico`)}
+                  >
+                    Ver Turnos
                   </Button>
+                </TableCell>
+                <TableCell>
                   {medico?.id_agenda ? (
                     <Button
-                      variant="outline"
-                      onClick={() =>
-                        (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/modificarAgenda`)
-                      }
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/modificarAgenda`)}
                     >
                       Modificar Agenda
                     </Button>
                   ) : (
                     <Button
-                      variant="default"
-                      onClick={() =>
-                        (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/nuevaAgenda`)
-                      }
+                      variant="outline"
+                      size="sm"
+                      onClick={() => (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/nuevaAgenda`)}
                     >
                       Registrar Agenda
                     </Button>
                   )}
-                  <Button
-                  onClick={() => (window.location.href = `../administrativo/medicos/${medico.legajo_medico}/TurnosMedico`)}
-                  variant="outline"
-                  size="sm"
-                  >
-                    Ver Turnos
-                  </Button>
-                <Button
-  variant={medico.estado === "activo" ? "destructive" : "default"}
-  size="sm"
-  onClick={async () => {
-    const nuevoEstado = medico.estado === "activo" ? "inactivo" : "activo";
+                </TableCell>
+                
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button
+                    variant="ghost"
+                      size="sm"
+                      onClick={() => (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/datos/modificarDatos`)}
+                    >
+                      Modificar Datos
+                    </Button>
+                    <Button
+                      variant={medico.estado === "activo" ? "destructive" : "outline"}
+                      size="sm"
+                      onClick={async () => {
+                        const nuevoEstado = medico.estado === "activo" ? "inactivo" : "activo";
+                        const res = await fetch("/api/medico/medico-estado", {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            legajo_medico: medico.legajo_medico,
+                            estado: nuevoEstado,
+                          }),
+                        });
 
-    // Hacemos el fetch sin confirmación
-    const res = await fetch("/api/medico/medico-estado", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        legajo_medico: medico.legajo_medico,
-        estado: nuevoEstado,
-      }),
-    });
+                        const raw = await res.text();
+                        let json: any = null;
+                        try {
+                          json = raw ? JSON.parse(raw) : null;
+                        } catch {}
 
-    const raw = await res.text();
-    let json: any = null;
-    try {
-      json = raw ? JSON.parse(raw) : null;
-    } catch {}
+                        if (!res.ok || !json?.ok) {
+                          console.log("❌ No se pudo actualizar:", json?.message);
+                          return;
+                        }
 
-    // En vez de alert, solo logueamos (o podés omitir esto)
-    if (!res.ok || !json?.ok) {
-      console.log("❌ No se pudo actualizar:", json?.message);
-      return;
-    }
-
-    // Refresco local del estado en pantalla
-    setMedicosConEspecialidades((prev) =>
-      prev.map((m) =>
-        Number(m.legajo_medico) === Number(medico.legajo_medico)
-          ? { ...m, estado: nuevoEstado }
-          : m
-      )
-    );
-  }}
->
-  {medico.estado === "activo" ? "Inhabilitar" : "Habilitar"}
-</Button>
-
-
-
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                        setMedicosConEspecialidades((prev) =>
+                          prev.map((m) =>
+                            Number(m.legajo_medico) === Number(medico.legajo_medico)
+                              ? { ...m, estado: nuevoEstado }
+                              : m
+                          )
+                        );
+                      }}
+                    >
+                      {medico.estado === "activo" ? "Inhabilitar" : "Habilitar"}
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </TabsContent>
   );

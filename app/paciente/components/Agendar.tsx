@@ -11,10 +11,12 @@ interface AgendarProps {
      setTurnosDisponibles: React.Dispatch<React.SetStateAction<any[]>>;
 }
 interface TurnoBody {
-     legajo_medico: string;
+     legajo_medico: number;
+     nombre_medico: string;
      dni_paciente: number;
      fecha_hora_turno: Date;
      id_especialidad: number;
+     desc_especialidad:string;
      id_obra: string | null;
      turno_pagado?: boolean;
      estado_turno: string;
@@ -47,8 +49,56 @@ const Agendar = ({ turnoAConfirmar, setTurnoAConfirmar, setTurnosAgendados, setT
      const [selectedObraSocial, setSelectedObraSocial] = useState<string>("null");
      const [showMissingDni, setShowMissingDni] = useState(false);
      const [showSuccess, setShowSuccess] = useState(false);
+     const [especialidadDesc, setEspecialidadDesc] = useState<string>("");
      const { userId } = useAuth();
-console.log(turnoAConfirmar);
+
+     // Función para buscar la descripción de la especialidad
+     const buscarEspecialidad = async () => {
+          try {
+               const res = await fetch(`/api/especialidades`, {
+                    cache: "no-store",
+               });
+               if (!res.ok) throw new Error("Error al obtener especialidades");
+               const especialidades : any[] = await res.json();
+               console.log(especialidades);
+               // Buscar la especialidad que coincida con el ID
+               const especialidad = especialidades.data.find((esp: any) => 
+                    esp.id_especialidad === Number(turnoAConfirmar.id_especialidad)
+               );
+               
+               if (especialidad) {
+                    setEspecialidadDesc(especialidad.descripcion);
+               }
+          } catch (error) {
+               console.error("Error al buscar especialidad:", error);
+          }
+     };
+     const [medicoNombre, setMedicoNombre] = useState<string>("");
+     
+     const buscarMedico = async () => {
+          try {
+               const res = await fetch(`/api/medico/${turnoAConfirmar.legajo_medico}`, {
+                    cache: "no-store",
+               });
+               if (!res.ok) throw new Error("Error al obtener médico");
+               
+               const medico = await res.json();
+               
+               if (medico) {
+                    const nombreCompleto = `${medico.nombre} ${medico.apellido}`.trim();
+                    setMedicoNombre(nombreCompleto);
+               }
+          } catch (error) {
+               console.error("Error al buscar médico:", error);
+          }
+     };
+		
+     // Buscar la especialidad cuando el componente se monta
+     React.useEffect(() => {
+          buscarEspecialidad();
+          buscarMedico();
+     }, [turnoAConfirmar.id_especialidad]);
+
      // Getter: obtiene el dni del paciente asociado al userId (desde /api/paciente)
      const getDniPaciente = async (): Promise<number | null> => {
           try {
@@ -137,8 +187,8 @@ getObrasSociales();
                               Debe pagar el turno para confirmarlo
                          </h3>
                          <p className="mb-4">
-                              Médico: <b>{turnoAConfirmar.medico}</b> <br />
-                              Especialidad: <b>{turnoAConfirmar.especialidad}</b> <br />
+                              Médico: <b>{medicoNombre || "Cargando..."}</b> <br />
+                              Especialidad: <b>{especialidadDesc || "Cargando..."}</b> <br />
                               Fecha: <b>{turnoAConfirmar.fecha}</b> - Hora:{" "}
                               <b>{turnoAConfirmar.hora}</b>
                          </p>

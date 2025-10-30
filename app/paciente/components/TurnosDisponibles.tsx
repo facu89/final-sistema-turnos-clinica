@@ -49,7 +49,7 @@ const turnosFormateados = libres
     hour: "2-digit",
     minute: "2-digit",
   });
-  return { id: t.iso, fecha: fechaStr, hora: horaStr, legajo_medico: t.legajo_medico,id_especialidad: filtroEspecialidad };
+  return { id: t.iso, fecha: fechaStr, hora: horaStr, legajo_medico: t.legajo_medico,id_especialidad: filtroEspecialidad,desc_especialidad:t.desc_especialidad };
 });
 
 
