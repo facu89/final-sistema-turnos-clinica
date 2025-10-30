@@ -46,12 +46,17 @@ const turnos: any[] = Array.isArray(turnosParaModificar)
 const getISO = (t: any) =>
   t?.iso ?? (typeof t === "string" ? t : t?.fecha_hora_turno);
 
+// Filtrar turnos a partir de 24 horas después de la hora actual
+const horaMinima = new Date();
+horaMinima.setHours(horaMinima.getHours() + 24);
+
 // Formateo
 const turnosFormateados = turnos
   .map((t: any) => {
     const iso = getISO(t);
     if (!iso) return null; // saltar items raros
-    const fecha = new Date(iso)
+    const fecha = new Date(iso);
+    if (fecha < horaMinima) return null; // filtrar turnos antes de 24 horas
     const fechaStr = fecha.toLocaleDateString("es-AR", {
       weekday: "long",
       day: "2-digit",

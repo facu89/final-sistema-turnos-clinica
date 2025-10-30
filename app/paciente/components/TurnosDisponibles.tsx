@@ -23,7 +23,7 @@ export const TurnosDisponibles = ({
   const [turnosAgendados, setTurnosAgendados] = useState<any[]>([]);
   const [mostrarCantidad, setMostrarCantidad] = useState(15);
 
-  // 📡 Datos del hook (usa directamente libres, sin duplicar estado)
+  // Datos del hook (usa directamente libres, sin duplicar estado)
   const { libres, loading, error } = useTurnosLibres(
     filtroEspecialidad,
     filtroMedico
@@ -32,8 +32,13 @@ export const TurnosDisponibles = ({
   //Mostrar “Ver más”
   const mostrarMas = () => setMostrarCantidad((prev) => prev + 15);
 
-  //  Transformar cada ISO string en {fecha, hora}
-const turnosFormateados = libres.map(t => {
+  //  Filtrar turnos a partir de 24 horas después de la hora actual
+const horaMinima = new Date();
+horaMinima.setHours(horaMinima.getHours() + 24); // Suma 24 horas a la hora actual
+
+const turnosFormateados = libres
+  .filter(t => new Date(t.iso) >= horaMinima)
+  .map(t => {
   const fecha = new Date(t.iso);
   const fechaStr = fecha.toLocaleDateString("es-AR", {
     weekday: "long",
@@ -61,10 +66,7 @@ const turnosFormateados = libres.map(t => {
   if (!libres || libres.length === 0)
     return (
       <NoMatches filtroEspecialidad={filtroEspecialidad} />
-      // o un fallback simple:
-      // <p className="text-muted-foreground">
-      //   No hay turnos disponibles con esos filtros.
-      // </p>
+     
     );
 
   
