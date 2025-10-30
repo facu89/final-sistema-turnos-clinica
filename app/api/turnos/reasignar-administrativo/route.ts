@@ -209,6 +209,7 @@ export async function POST(req: NextRequest) {
     }
 
     const resultados: Array<{ id: number; nuevo?: number; error?: string }> = [];
+    const agendaFailIds: number[] = []; // para armar el mensaje agregado
 
     for (const [legajo, lista] of porMedico.entries()) {
       // Base = mayor fecha entre los seleccionados (o now)
@@ -217,8 +218,27 @@ export async function POST(req: NextRequest) {
         return ft > max ? ft : max;
       }, new Date());
 
-      // Primer día hábil según agenda
-      const { date: targetDay, windows } = await nextWorkingDayForDoctor(legajo, base);
+      // Primer día hábil según agenda (manejar casos sin agenda)
+      let targetDay: Date | null = null;
+      let windows: { h1: string; h2: string; slot: number }[] = [];
+
+      try {
+        const r = await nextWorkingDayForDoctor(legajo, base);
+        targetDay = r.date;
+        windows = r.windows;
+      } catch {
+        // No hay agenda hábil para este médico en 60 días: marcar error en TODOS los de esta lista
+        const idsFallidos = lista.map(x => x.cod_turno);
+        agendaFailIds.push(...idsFallidos);
+        idsFallidos.forEach(id => {
+          resultados.push({
+            id,
+            error:
+              "No se encontró un día hábil según la agenda del médico en los próximos 60 días",
+          });
+        });
+        continue; // seguir con el siguiente médico sin cortar el proceso
+      }
 
       // Generar slots del día
       let candidatos: string[] = [];
@@ -227,7 +247,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Quitar ocupados
-      const taken = await getOcupados(legajo, targetDay);
+      const taken = await getOcupados(legajo, targetDay!);
       candidatos = candidatos.filter(h => !taken.has(h));
 
       // Asignar en estricto orden
@@ -239,7 +259,7 @@ export async function POST(req: NextRequest) {
         }
 
         const hhmmSlot = candidatos[idx++];
-        const nuevaFecha = mkDateTime(targetDay, hhmmSlot).toISOString();
+        const nuevaFecha = mkDateTime(targetDay!, hhmmSlot).toISOString();
 
         // Guardar estado ORIGINAL antes de modificar el turno viejo
         const estadoOriginal = t.estado_turno ?? "Pendiente";
@@ -257,12 +277,12 @@ export async function POST(req: NextRequest) {
 
         // 2) crear nuevo turno heredando el estado original
         const nuevoTurno = {
-          legajo_medico: legajo,
+          legajo_medico: Number(legajo),
           dni_paciente: t.dni_paciente,
           id_especialidad: t.id_especialidad,
           id_obra: t.id_obra,
           fecha_hora_turno: nuevaFecha,
-          estado_turno: estadoOriginal, // clave: mantiene el estado previo (ej. "Reservado")
+          estado_turno: estadoOriginal,
           turno_pagado: t.turno_pagado ?? false,
         };
 
@@ -282,10 +302,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, resultados });
+    // Mensaje agregado para mostrar arriba (opcional en el front)
+    const agendaFailMessage =
+      agendaFailIds.length > 0
+        ? `No se encontró un día hábil según la agenda del médico en los próximos 60 días para los siguientes turnos: ${agendaFailIds
+            .map(id => `#${id}`)
+            .join(", ")}`
+        : undefined;
+
+    return NextResponse.json({ success: true, resultados, agendaFailIds, agendaFailMessage });
   } catch (e: any) {
-    console.error("reasignar-nextday error:", e);
+    console.error("reasignar-administrativo error:", e);
     return NextResponse.json({ error: e?.message ?? "Error interno" }, { status: 500 });
   }
 }
-
