@@ -163,8 +163,8 @@ export default function MedicoTab() {
         </Button>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
+      <div className="w-full overflow-x-auto">
+        <Table className="w-full">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[200px]">Nombre Completo</TableHead>

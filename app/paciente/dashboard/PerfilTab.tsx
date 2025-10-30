@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import InfoPaciente from "../components/InfoPaciente";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth/useAuth"; //este hook devuelve el id del usuario con la sesion actual
 interface PacienteData {
@@ -61,11 +60,11 @@ export const PerfilTab = () => {
 
   return (
     <TabsContent value="perfil" className="space-y-6">
-      <div className="flex justify-between items-center">
+      {/* <div className="flex justify-center items-center">
         <h2 className="text-2xl font-bold">Mi Perfil</h2>
-      </div>
+      </div> */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex justify-center">
         <InfoPaciente pacienteData={pacienteData} userId={userId} />
       </div>
     </TabsContent>

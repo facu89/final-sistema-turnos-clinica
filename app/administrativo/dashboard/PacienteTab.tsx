@@ -4,9 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
-import { Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 async function getPacientes() {
   try {
@@ -67,37 +67,50 @@ export default function PacienteTab() {
       </div>
 
       <div className="grid gap-4">
-        {pacientes.map((paciente: any) => (
-          <Card key={paciente.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-secondary/10 p-2 rounded-lg">
-                    <Users className="h-4 w-4 text-secondary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{paciente.nombre}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {paciente.email} • {paciente.telefono}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
+        <Table className="w-full">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-left">Paciente</TableHead>
+              <TableHead className="text-left">Email</TableHead>
+              <TableHead className="text-left">Teléfono</TableHead>
+              <TableHead className="text-left">Ausencias</TableHead>
+              <TableHead className="text-left">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pacientes.map((paciente: any) => (
+              <TableRow key={paciente.id}>
+                <TableCell className="font-medium">{paciente.nombre}</TableCell>
+                <TableCell>{paciente.email}</TableCell>
+                <TableCell>{paciente.telefono}</TableCell>
+                <TableCell>
                   <Badge variant={paciente.ausencias > 1 ? "destructive" : "secondary"}>
                     {paciente.ausencias} ausencias
                   </Badge>
+                </TableCell>
+                <TableCell>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => (window.location.href = `/administrativo/paciente/${paciente.id}/historial`)}
+                    onClick={() =>
+                      (window.location.href = `/administrativo/paciente/${paciente.id}/historial`)
+                    }
                   >
                     Ver Historial
                   </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                </TableCell>
+              </TableRow>
+            ))}
+
+            {pacientes.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
+                  No se encontraron pacientes
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </TabsContent>
   );
