@@ -127,9 +127,38 @@ export const ReportesTab = () => {
           />
         );
       case "demanda-medico":
-        return <ReporteDemandaMedico />;
+        return (
+          <ReporteDemandaMedico
+            turnos={turnos}
+            especialidades={especialidades}
+            especialidadSeleccionada={especialidadSeleccionada}
+            setEspecialidadSeleccionada={setEspecialidadSeleccionada}
+            medicos={medicos}
+            loading={loading}
+            fechaInicio={fechaInicio}
+            setFechaInicio={setFechaInicio}
+            fechaFin={fechaFin}
+            setFechaFin={setFechaFin}
+            medicoSeleccionado={medicoSeleccionado}
+            setMedicoSeleccionado={setMedicoSeleccionado}
+          />
+        );
       case "demanda-especialidad":
-        return <ReporteDemandaEspecialidad />;
+        return (
+          <ReporteDemandaEspecialidad
+            turnos={turnos}
+            especialidades={especialidades}
+            loading={loading}
+            fechaInicio={fechaInicio}
+            setFechaInicio={setFechaInicio}
+            fechaFin={fechaFin}
+            setFechaFin={setFechaFin}
+            medicoSeleccionado={medicoSeleccionado}
+            setMedicoSeleccionado={setMedicoSeleccionado}
+            especialidadSeleccionada={especialidadSeleccionada}
+            setEspecialidadSeleccionada={setEspecialidadSeleccionada}
+          />
+        );
       default:
         return null;
     }

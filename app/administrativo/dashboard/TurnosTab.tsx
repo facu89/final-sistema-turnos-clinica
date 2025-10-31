@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import FiltrosTurnos from "./FiltrosTurnos";
 import { useReasignarManual } from "./useReasignarManual";
+import { SkeletonTurnosTab } from "@/components/ui/skeletons/skeletonTurnos";
 
 interface Turno {
   cod_turno: number;
@@ -148,11 +149,7 @@ export const TurnosTab = () => {
 
   if (loading) {
     return (
-      <TabsContent value="turnos" className="space-y-6">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <p>Cargando turnos...</p>
-        </div>
-      </TabsContent>
+      <SkeletonTurnosTab/>
     );
   }
 

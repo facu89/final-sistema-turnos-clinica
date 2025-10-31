@@ -17,6 +17,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import { generarPDFTablaTurnos } from "@/hooks/pdf/generar-pdf";
+import { FiltrosReportes } from "./FiltrosReportes";
 
 interface Turno {
   cod_turno: number;
@@ -142,86 +143,35 @@ export const ReporteTurnosPorFecha = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="text-sm font-medium">Fecha Inicio</label>
-            <input
-              type="date"
-              className="w-full mt-1 p-2 border rounded-lg"
-              value={fechaInicio}
-              onChange={(e) => setFechaInicio(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Fecha Fin</label>
-            <input
-              type="date"
-              className="w-full mt-1 p-2 border rounded-lg"
-              value={fechaFin}
-              onChange={(e) => setFechaFin(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Médico</label>
-            <select
-              className="w-full mt-1 p-2 border rounded-lg"
-              value={medicoSeleccionado}
-              onChange={(e) => setMedicoSeleccionado(e.target.value)}
-              disabled={loading}
-            >
-              <option value="">
-                {loading ? "Cargando médicos..." : "Todos los médicos"}
-              </option>
-              {medicos.map((medico: Medico) => (
-                <option
-                  key={medico.legajo_medico}
-                  value={`${medico.nombre} ${medico.apellido}`}
-                >
-                  Dr. {medico.nombre} {medico.apellido}
-                  {medico.especialidad && ` - ${medico.especialidad}`}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Especialidad</label>
-            <select
-              className="w-full mt-1 p-2 border rounded-lg"
-              value={especialidadSeleccionada}
-              onChange={(e) => setEspecialidadSeleccionada(e.target.value)}
-              disabled={loading}
-            >
-              <option value="">
-                {loading
-                  ? "Cargando especialidades..."
-                  : "Todas las especialidades"}
-              </option>
-              {especialidades.map((especialidad: Especialidad) => (
-                <option
-                  key={especialidad.id_especialidad}
-                  value={String(especialidad.id_especialidad)}
-                >
-                  {especialidad.descripcion}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-end">
-            <Button
-              className="w-full"
-              disabled={loading}
-              onClick={() =>
-                generarPDFTablaTurnos(
-                  filteredTurnos,
-                  "Reporte_Turnos_Por_Fecha.pdf"
-                )
-              }
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              {loading ? "Cargando..." : "Generar Reporte"}
-            </Button>
-          </div>
-        </div>
+        <FiltrosReportes
+          fechaInicio={fechaInicio}
+          setFechaInicio={setFechaInicio}
+          fechaFin={fechaFin}
+          setFechaFin={setFechaFin}
+          medicoSeleccionado={medicoSeleccionado}
+          setMedicoSeleccionado={setMedicoSeleccionado}
+          especialidadSeleccionada={especialidadSeleccionada}
+          setEspecialidadSeleccionada={setEspecialidadSeleccionada}
+          medicos={medicos}
+          especialidades={especialidades}
+          loading={loading}
+          mostrarMedico={true}
+          mostrarEspecialidad={true}
+        >
+          <Button
+            className="w-full"
+            disabled={loading}
+            onClick={() =>
+              generarPDFTablaTurnos(
+                filteredTurnos,
+                "Reporte_Turnos_Por_Fecha.pdf"
+              )
+            }
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            {loading ? "Cargando..." : "Generar Reporte"}
+          </Button>
+        </FiltrosReportes>
         <div id="div-contenido-pdf">
           <Table className="w-full text-sm">
             <TableHeader>
