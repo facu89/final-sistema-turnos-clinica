@@ -107,8 +107,11 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
     const [obrasSociales, setObrasSociales] = useState<{ id_obra: string; descripcion: string }[]>([]);
     const [modalAbierto, setModalAbierto] = useState(false);
 
-    const [obrasSocialesSeleccionadas, setObrasSocialesSeleccionadas] = useState<string[]>([]);
-    const [isLoadingObras, setIsLoadingObras] = useState(true);
+    const [obraSeleccionada, setObraSeleccionada] = useState<string | null>(null);
+    const [fechaInicio, setFechaInicio] = useState<string>(
+        new Date().toISOString().split("T")[0]
+    ); ///nuevooo
+    //const [isLoadingObras, setIsLoadingObras] = useState(true);
     const [error, setError] = useState <string | null>(null);
     const [exito, setExito] = useState(false); //esto tiene que ir en la parte del handle submit
     const [isLoading, setIsLoading] = useState(false); // en el submit y el cancel
@@ -235,18 +238,36 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
     };
 
     // agregar convenio tentativamente desde modal
-    const handleAgregarConvenio = (obra: { id_obra: string; descripcion: string }) => {
+    const handleAgregarConvenio = () => {
+        if (!obraSeleccionada) return;
+
+        const obra = obrasSociales.find((o) => o.id_obra === obraSeleccionada);
+        if (!obra) return;
+
+        const hoy = new Date().toISOString().split("T")[0];
+        if (fechaInicio < hoy) {
+            alert("La fecha de inicio no puede ser anterior a la fecha actual.");
+            return;
+        }
+
         const nuevoConvenio: ConvenioMedico = {
-        id_obra: obra.id_obra,
-        descripcion: obra.descripcion,
-        fecha_alta: new Date().toISOString().split("T")[0],
+            id_obra: obra.id_obra,
+            descripcion: obra.descripcion,
+            fecha_alta: fechaInicio, // usamos la fecha seleccionada
         };
+
         setConvenios((prev) => [...prev, nuevoConvenio]);
         setDatosTemp((prev) => ({
-        ...prev,
-        convenios: [...(prev.convenios || []), nuevoConvenio],
+            ...prev,
+            convenios: [...(prev.convenios || []), nuevoConvenio],
         }));
+
+        // reseteamos estado del modal
+        setObraSeleccionada(null);
+        setFechaInicio(new Date().toISOString().split("T")[0]);
         setModalAbierto(false);
+        console.log("DatosTEMPPPP::::")
+        console.log(datosTemp);
     };
 
     const obrasDisponibles = obrasSociales.filter(
@@ -267,7 +288,7 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                 Cancelar
             </Button>
         </div>
-        <Card>
+        <Card className="max-w-2xl mx-auto mt-8 shadow-md rounded-xl">
             <CardHeader>
                 <CardTitle>Modificar medico</CardTitle>
                 <CardDescription>Actualizá los datos del médico</CardDescription>
@@ -420,40 +441,68 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                     </div>
                     
 
-                    {/* === Modal de obras sociales disponibles === */}
+                    {/* Modal de obras sociales disponibles */} 
                     <Dialog open={modalAbierto} onOpenChange={setModalAbierto}>
                         <DialogContent className="max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>Seleccionar obra social</DialogTitle>
-                        </DialogHeader>
-                        <div className="max-h-60 overflow-y-auto mt-2">
-                            {obrasDisponibles.length === 0 ? (
-                            <p className="text-sm text-muted-foreground px-2">
-                                No hay obras sociales disponibles para agregar.
-                            </p>
-                            ) : (
-                            obrasDisponibles.map((obra) => (
-                                <div
-                                key={obra.id_obra}
-                                className="flex items-center justify-between px-3 py-2 border-b last:border-none"
+                            <DialogHeader>
+                                <DialogTitle>Nuevo convenio</DialogTitle>
+                            </DialogHeader>
+
+                            {/* Selector de obra social */}
+                            <div className="mt-2">
+                                <Label>Obra social</Label>
+                                <Select
+                                    onValueChange={(value) => setObraSeleccionada(value)}
+                                    value={obraSeleccionada || ""}
                                 >
-                                <span>{obra.descripcion}</span>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleAgregarConvenio(obra)}
-                                >
-                                    Agregar
+                                    <SelectTrigger className="w-full mt-1">
+                                    <SelectValue placeholder="Selecciona una obra social" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    {obrasDisponibles.length === 0 ? (
+                                        <SelectItem value="none" disabled>
+                                        No hay obras sociales disponibles
+                                        </SelectItem>
+                                    ) : (
+                                        obrasDisponibles.map((obra) => (
+                                        <SelectItem key={obra.id_obra} value={obra.id_obra}>
+                                            {obra.descripcion}
+                                        </SelectItem>
+                                        ))
+                                    )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Selector de fecha */}
+                            <div className="mt-4">
+                                <Label>Fecha de inicio</Label>
+                                <Input
+                                    type="date"
+                                    className="mt-1"
+                                    min={new Date().toISOString().split("T")[0]}
+                                    onChange={(e) => {
+                                        const hoy = new Date().toISOString().split("T")[0];
+                                        const fechaSeleccionada = e.target.value;
+
+                                        setFechaInicio(fechaSeleccionada);
+                                    }}
+                                />
+                                <div className="text-xs text-muted-foreground">Ingrese una fecha superior a la actual</div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 mt-5">
+                                <Button variant="ghost" onClick={() => setModalAbierto(false)}>
+                                    <X className="h-4 w-4 mr-2" /> Cancelar
                                 </Button>
-                                </div>
-                            ))
-                            )}
-                        </div>
-                        <div className="flex justify-end mt-3">
-                            <Button variant="ghost" onClick={() => setModalAbierto(false)}>
-                            <X className="h-4 w-4 mr-2" /> Cerrar
-                            </Button>
-                        </div>
+                                <Button
+                                    variant="default"
+                                    disabled={!obraSeleccionada}
+                                    onClick={handleAgregarConvenio}
+                                >
+                                    <PlusCircle className="h-4 w-4 mr-2" /> Añadir
+                                </Button>
+                            </div>
                         </DialogContent>
                     </Dialog>
 

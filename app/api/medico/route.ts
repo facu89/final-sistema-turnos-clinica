@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { syncEspecialidades } from "@/lib/medico/helpers";
+import { syncEspecialidadesMedico , syncConveniosMedico } from "@/lib/medico/helpers";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -149,15 +149,22 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest){
   try {
-    const { legajo_medico, nombre, apellido, dni_medico, tarifa, telefono, matricula, especialidades } = await request.json();
-    console.log("legajo del medico", legajo_medico);
-    console.log(nombre);
-    console.log(apellido);
-    console.log(telefono);
+    const body = await request.json();
+    const {
+      legajo_medico,
+      nombre,
+      apellido,
+      dni_medico,
+      telefono,
+      matricula,
+      tarifa,
+      especialidades,
+      convenios, // 👈 viene en datosTemp.convenios
+    } = body;
 
     if (!legajo_medico){
       return NextResponse.json(
-        {error: "Legajo del paciente requerido"},
+        {error: "Legajo del medico requerido"},
         {status: 400}
       );
     }
@@ -165,12 +172,12 @@ export async function PUT(request: NextRequest){
     const {data, error} = await supabase
     .from("medico")
     .update({
-      nombre: nombre,
-      apellido: apellido,
-      telefono: telefono,
-      dni_medico: dni_medico,
-      tarifa: tarifa,
-      matricula: matricula,
+      nombre,
+      apellido,
+      telefono,
+      dni_medico,
+      tarifa,
+      matricula,
     })
     .eq("legajo_medico", legajo_medico)
     .select();
@@ -181,12 +188,32 @@ export async function PUT(request: NextRequest){
     }
 
     // Si vienen especialidades en el body, delegar la sincronización al helper
-    if (typeof especialidades !== 'undefined') {
-      try {
-        await syncEspecialidades(legajo_medico, especialidades);
-      } catch (err: any) {
-        console.error('Error sincronizando especialidades:', err);
-        return NextResponse.json({ error: err?.message || 'Error sincronizando especialidades' }, { status: 500 });
+    if (Array.isArray(especialidades)) {
+      const resultEsp = await syncEspecialidadesMedico(
+        supabase,
+        legajo_medico,
+        especialidades
+      );
+      if (!resultEsp.success) {
+        return NextResponse.json(
+          { error: resultEsp.error },
+          { status: 500 }
+        );
+      }
+    }
+
+    // lo mismo para los convenios
+    if (Array.isArray(convenios)) {
+      const resultConvenios = await syncConveniosMedico(
+        supabase,
+        legajo_medico,
+        convenios
+      );
+      if (!resultConvenios.success) {
+        return NextResponse.json(
+          { error: resultConvenios.error },
+          { status: 500 }
+        );
       }
     }
 
