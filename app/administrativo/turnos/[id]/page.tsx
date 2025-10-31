@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth/useAuth";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { SkeletonDetalleTurno } from "@/components/ui/skeletons/skeletonDetalle";
 
 export default function TurnoDetalle({params}:{params: {id: string}}) {
   const cod_turno = params.id;
@@ -64,16 +65,7 @@ export default function TurnoDetalle({params}:{params: {id: string}}) {
 
   if(loading){
     return(
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <div className="sticky top-0 z-10">
-          <HeaderTurno />
-        </div>
-  
-        <div className="flex flex-1 flex-col items-center justify-center">
-          <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
-          <p className="text-lg text-gray-600">Cargando...</p>
-        </div>
-      </div>
+      <SkeletonDetalleTurno/>
     );
   }
 
