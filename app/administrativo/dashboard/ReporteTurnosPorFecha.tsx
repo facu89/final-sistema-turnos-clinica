@@ -45,6 +45,7 @@ interface Medico {
 }
 
 interface Props {
+  turnos: Turno[];
   medicos: Medico[];
   especialidades: Especialidad[];
   loading: boolean;
@@ -58,17 +59,8 @@ interface Props {
   setEspecialidadSeleccionada: (v: string) => void;
 }
 
-async function getTurnosPacientes(): Promise<Turno[]> {
-  const response = await fetch("/api/turnos/todos");
-  if (!response.ok) {
-    throw new Error("Error al obtener turnos");
-  }
-  const data: Turno[] = await response.json();
-  console.log(data);
-  return data;
-}
-
 export const ReporteTurnosPorFecha = ({
+  turnos,
   medicos,
   especialidades,
   loading,
@@ -81,23 +73,7 @@ export const ReporteTurnosPorFecha = ({
   especialidadSeleccionada,
   setEspecialidadSeleccionada,
 }: Props) => {
-  const [turnos, setTurnos] = useState<Turno[]>([]);
-  const [cargandoTurnos, setCargandoTurnos] = useState(true);
-
-  useEffect(() => {
-    const cargarTurnos = async () => {
-      try {
-        setCargandoTurnos(true);
-        const turnosData = await getTurnosPacientes();
-        setTurnos(turnosData);
-      } catch (error) {
-        setTurnos([]);
-      } finally {
-        setCargandoTurnos(false);
-      }
-    };
-    cargarTurnos();
-  }, []);
+  useEffect(() => {}, []);
 
   const formatearFechaHora = (fechaHora: string) => {
     const fecha = new Date(fechaHora);
@@ -126,18 +102,19 @@ export const ReporteTurnosPorFecha = ({
           return false;
         }
       }
+
+      const turnoDate = new Date(turno.fecha_hora_turno);
+      const turnoYMD = turnoDate.toISOString().slice(0, 10);
+
       if (fechaInicio && fechaInicio !== "") {
-        const start = new Date(fechaInicio);
-        start.setHours(0, 0, 0, 0);
-        const turnoDate = new Date(turno.fecha_hora_turno);
-        if (turnoDate < start) return false;
+        const inicioYMD = new Date(fechaInicio).toISOString().slice(0, 10);
+        if (turnoYMD < inicioYMD) return false;
       }
       if (fechaFin && fechaFin !== "") {
-        const end = new Date(fechaFin);
-        end.setHours(23, 59, 59, 999);
-        const turnoDate = new Date(turno.fecha_hora_turno);
-        if (turnoDate > end) return false;
+        const finYMD = new Date(fechaFin).toISOString().slice(0, 10);
+        if (turnoYMD > finYMD) return false;
       }
+
       return true;
     });
   }, [
@@ -148,7 +125,7 @@ export const ReporteTurnosPorFecha = ({
     fechaFin,
   ]);
 
-  if (loading || cargandoTurnos) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <p>Cargando turnos...</p>

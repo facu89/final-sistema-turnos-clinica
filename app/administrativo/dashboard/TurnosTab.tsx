@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { TabsContent } from "@/components/ui/tabs";
 import {
-  Table, TableHeader, TableRow, TableHead, TableBody, TableCell,
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
 } from "@/components/ui/table";
 import FiltrosTurnos from "./FiltrosTurnos";
 import { useReasignarManual } from "./useReasignarManual";
@@ -18,13 +23,18 @@ interface Turno {
   apellido_medico: string;
   estado_turno: string;
 }
-interface Filters { medico?: string; fechaInicio?: string; fechaFin?: string; }
+interface Filters {
+  medico?: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+}
 
 async function getTurnosPacientes(): Promise<Turno[]> {
   const response = await fetch("/api/turnos/todos");
   if (!response.ok) throw new Error("Error al obtener turnos");
   const data: Turno[] = await response.json();
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
   return data.filter((t) => new Date(t.fecha_hora_turno) >= hoy);
 }
 
@@ -34,13 +44,18 @@ export const TurnosTab = () => {
   const [loading, setLoading] = useState(true);
 
   const [selected, setSelected] = useState<Set<number>>(new Set());
-  const { reasignarNextDay, loading: reLoading, error: reError, setError: setReError } =
-    useReasignarManual();
+  const {
+    reasignarNextDay,
+    loading: reLoading,
+    error: reError,
+    setError: setReError,
+  } = useReasignarManual();
 
   const toggle = (id: number) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -57,13 +72,18 @@ export const TurnosTab = () => {
       setLoading(false);
     }
   };
-  useEffect(() => { cargarTurnos(); }, []);
+  useEffect(() => {
+    cargarTurnos();
+  }, []);
 
   const formatearFechaHora = (fechaHora: string) => {
     const fecha = new Date(fechaHora);
     return {
       fecha: fecha.toLocaleDateString("es-ES"),
-      hora: fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" }),
+      hora: fecha.toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
   };
 
@@ -73,16 +93,19 @@ export const TurnosTab = () => {
         const n = `${turno.nombre_medico} ${turno.apellido_medico}`;
         if (n !== filters.medico) return false;
       }
-      if (filters.fechaInicio || filters.fechaFin) {
-        const d = new Date(turno.fecha_hora_turno);
-        if (filters.fechaInicio) {
-          const s = new Date(filters.fechaInicio); s.setHours(0, 0, 0, 0);
-          if (d < s) return false;
-        }
-        if (filters.fechaFin) {
-          const e = new Date(filters.fechaFin); e.setHours(23, 59, 59, 999);
-          if (d > e) return false;
-        }
+
+      const turnoDate = new Date(turno.fecha_hora_turno);
+      const turnoYMD = turnoDate.toISOString().slice(0, 10);
+
+      if (filters.fechaInicio) {
+        const inicioYMD = new Date(filters.fechaInicio)
+          .toISOString()
+          .slice(0, 10);
+        if (turnoYMD < inicioYMD) return false;
+      }
+      if (filters.fechaFin) {
+        const finYMD = new Date(filters.fechaFin).toISOString().slice(0, 10);
+        if (turnoYMD > finYMD) return false;
       }
       return true;
     });
@@ -103,7 +126,9 @@ export const TurnosTab = () => {
       if (fallidos.length > 0) {
         const ids = fallidos.map((f: any) => `#${f.id}`).join(", ");
         const haySinAgenda = fallidos.some((f: any) =>
-          String(f.error || "").includes("No se encontró un día hábil según la agenda")
+          String(f.error || "").includes(
+            "No se encontró un día hábil según la agenda"
+          )
         );
         const msg = haySinAgenda
           ? `No se encontró un día hábil según la agenda del médico en los próximos 60 días para los siguientes turnos: ${ids}.`
@@ -140,10 +165,19 @@ export const TurnosTab = () => {
       {/* Filtros + botón de reasignar */}
       <div className="flex items-end gap-3">
         <div className="flex-1">
-          <FiltrosTurnos filters={filters} onChange={setFilters} turnos={turnos} />
+          <FiltrosTurnos
+            filters={filters}
+            onChange={setFilters}
+            turnos={turnos}
+          />
         </div>
-        <Button onClick={handleReassignSelected} disabled={reLoading || selected.size === 0}>
-          {reLoading ? "Reasignando..." : `Reasignar seleccionados (${selected.size})`}
+        <Button
+          onClick={handleReassignSelected}
+          disabled={reLoading || selected.size === 0}
+        >
+          {reLoading
+            ? "Reasignando..."
+            : `Reasignar seleccionados (${selected.size})`}
         </Button>
       </div>
 
@@ -165,7 +199,9 @@ export const TurnosTab = () => {
       {/* Tabla */}
       {filteredTurnos.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          {turnos.length === 0 ? "No hay turnos disponibles" : "No se encontraron turnos con los filtros aplicados"}
+          {turnos.length === 0
+            ? "No hay turnos disponibles"
+            : "No se encontraron turnos con los filtros aplicados"}
         </div>
       ) : (
         <Table className="w-full text-sm">
@@ -184,24 +220,36 @@ export const TurnosTab = () => {
 
           <TableBody>
             {filteredTurnos.map((turno) => {
-              const { fecha, hora } = formatearFechaHora(turno.fecha_hora_turno);
-              const esReasignado = (turno.estado_turno || "").toLowerCase() === "reasignado";
+              const { fecha, hora } = formatearFechaHora(
+                turno.fecha_hora_turno
+              );
+              const esReasignado =
+                (turno.estado_turno || "").toLowerCase() === "reasignado";
               const estaSeleccionado = selected.has(turno.cod_turno);
 
               return (
-                <TableRow key={turno.cod_turno} className="bg-white border-b hover:bg-gray-50">
-                  <TableCell className="font-medium">#{turno.cod_turno}</TableCell>
+                <TableRow
+                  key={turno.cod_turno}
+                  className="bg-white border-b hover:bg-gray-50"
+                >
+                  <TableCell className="font-medium">
+                    #{turno.cod_turno}
+                  </TableCell>
 
                   <TableCell>
                     {turno.nombre_paciente} {turno.apellido_paciente}
                     <br />
-                    <span className="text-xs text-gray-500">DNI: {turno.dni_paciente}</span>
+                    <span className="text-xs text-gray-500">
+                      DNI: {turno.dni_paciente}
+                    </span>
                   </TableCell>
 
                   <TableCell>
                     {turno.nombre_medico} {turno.apellido_medico}
                     <br />
-                    <span className="text-xs text-gray-500">Legajo: {turno.legajo_medico}</span>
+                    <span className="text-xs text-gray-500">
+                      Legajo: {turno.legajo_medico}
+                    </span>
                   </TableCell>
 
                   <TableCell>{fecha}</TableCell>
@@ -211,7 +259,9 @@ export const TurnosTab = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => (window.location.href = `/administrativo/turnos/${turno.cod_turno}`)}
+                      onClick={() =>
+                        (window.location.href = `/administrativo/turnos/${turno.cod_turno}`)
+                      }
                     >
                       Ver Detalle
                     </Button>
@@ -235,15 +285,16 @@ export const TurnosTab = () => {
                       className={`px-3 py-1 rounded-full text-xs font-medium border-2 ${
                         turno.estado_turno === "Pendiente de pago"
                           ? "bg-orange-50 text-orange-700 border-orange-300"
-                          : turno.estado_turno === "Pagado" || turno.estado_turno === "Confirmado"
-                          ? "bg-green-50 text-green-700 border-green-300"
-                          : turno.estado_turno === "Cancelado"
-                          ? "bg-red-50 text-red-700 border-red-300"
-                          : turno.estado_turno === "Pendiente"
-                          ? "bg-yellow-50 text-yellow-700 border-yellow-300"
-                          : turno.estado_turno === "Reasignado"
-                          ? "bg-blue-50 text-blue-700 border-blue-300"
-                          : "bg-gray-50 text-gray-700 border-gray-300"
+                          : turno.estado_turno === "Pagado" ||
+                              turno.estado_turno === "Confirmado"
+                            ? "bg-green-50 text-green-700 border-green-300"
+                            : turno.estado_turno === "Cancelado"
+                              ? "bg-red-50 text-red-700 border-red-300"
+                              : turno.estado_turno === "Pendiente"
+                                ? "bg-yellow-50 text-yellow-700 border-yellow-300"
+                                : turno.estado_turno === "Reasignado"
+                                  ? "bg-blue-50 text-blue-700 border-blue-300"
+                                  : "bg-gray-50 text-gray-700 border-gray-300"
                       }`}
                     >
                       {turno.estado_turno || "Sin estado"}

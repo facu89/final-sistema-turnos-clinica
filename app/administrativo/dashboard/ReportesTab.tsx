@@ -13,6 +13,20 @@ import { ReporteTurnosPorFecha } from "./ReporteTurnosPorFecha";
 import { ReporteDemandaMedico } from "./ReporteDemandaMedico";
 import { ReporteDemandaEspecialidad } from "./ReporteDemandaEspecialidad";
 
+interface Turno {
+  cod_turno: number;
+
+  dni_paciente: string;
+  fecha_hora_turno: string;
+  legajo_medico: string;
+  nombre_paciente: string;
+  apellido_paciente: string;
+  nombre_medico: string;
+  apellido_medico: string;
+  estado_turno: string;
+  especialidad: Especialidad;
+}
+
 interface Medico {
   legajo_medico: string;
   nombre: string;
@@ -31,6 +45,8 @@ interface Especialidad {
 
 export const ReportesTab = () => {
   const [medicos, setMedicos] = useState<Medico[]>([]);
+  const [turnos, setTurnos] = useState<Turno[]>([]);
+
   const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
   const [loading, setLoading] = useState(false);
   const [fechaInicio, setFechaInicio] = useState("");
@@ -41,12 +57,27 @@ export const ReportesTab = () => {
   const [tipoReporte, setTipoReporte] = useState("");
 
   useEffect(() => {
+    const cargaTurnos = async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch("/api/turnos/todos");
+        if (!response.ok) {
+          throw new Error("Error al obtener turnos");
+        }
+        const data: Turno[] = await response.json();
+        setTurnos(data);
+      } catch (error) {
+      } finally {
+        setLoading(false);
+      }
+    };
     const cargaEspecialidades = async () => {
       try {
         setLoading(true);
         const response = await fetch("/api/especialidades");
         if (!response.ok) throw new Error("Error al obtener especialidades");
-        const especialidadesData: Especialidad[] = await response.json();
+        const especialidadesData = await response.json();
         console.log("Especialidades traidas", especialidadesData);
         setEspecialidades(especialidadesData.data);
       } catch (error) {
@@ -71,6 +102,7 @@ export const ReportesTab = () => {
         setLoading(false);
       }
     };
+    cargaTurnos();
     cargaEspecialidades();
     cargarMedicos();
   }, []);
@@ -80,6 +112,7 @@ export const ReportesTab = () => {
       case "turnos":
         return (
           <ReporteTurnosPorFecha
+            turnos={turnos}
             medicos={medicos}
             especialidades={especialidades}
             loading={loading}
