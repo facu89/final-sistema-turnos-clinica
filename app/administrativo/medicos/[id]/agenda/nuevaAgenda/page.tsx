@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { HeaderAgenda } from "../HeaderAgenda";
 import { Calendar, Clock } from "lucide-react";
 import { AgendaCreada } from "@/components/agendaCreada";
+import SkeletonAgendaConfig from "@/components/ui/skeletons/skeletonAgenda";
 
 function minutosToTime(minutos: number) {
   const horas = Math.floor(minutos / 60)
@@ -27,13 +28,13 @@ export default function NuevaAgendaForm({
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [mensaje, setMensaje] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [medico, setMedico] = useState<any>(null);
   const [agendaCreada, setAgendaCreada] = useState(false);
 
   useEffect(() => {
     const fetchMedico = async () => {
-      const res = await fetch(`/api/medico/${params.id}/medico-legajo`);
+      const res = await fetch(`/api/medico/${params.id}`);
       const json = await res.json();
       setMedico(json);
       setLoading(false);
@@ -96,6 +97,12 @@ export default function NuevaAgendaForm({
       setLoading(false);
     }
   };
+
+  if(loading){
+    return(
+      <SkeletonAgendaConfig/>
+    )
+  }
 
   if (agendaCreada) {
     return (

@@ -8,6 +8,7 @@ import { HeaderAgenda } from "../HeaderAgenda";
 import { Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AgendaModificada } from "@/components/ui/agendaModificada";
+import SkeletonAgendaConfig from "@/components/ui/skeletons/skeletonAgenda";
 
 
 export default function EditarAgendaForm({
@@ -140,7 +141,7 @@ export default function EditarAgendaForm({
     fetchMedico();
   }, [legajo_medico]);
 
-  if (loading) return <p className="text-center mt-8">Cargando Agenda...</p>;
+  if (loading) return <SkeletonAgendaConfig/>;
 
   if (exito)
     return (

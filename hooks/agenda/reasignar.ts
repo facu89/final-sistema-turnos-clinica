@@ -86,8 +86,8 @@ const supabase = createClient(
       ) {
 
         const horarios: Date[] = [];
-        const fecha_Ini = new Date(fechaInicio);
-        const fecha_Fin = new Date(fechaFin);
+        const fecha_Ini = new Date(`${fechaInicio}T00:00:00`);
+        const fecha_Fin = new Date(`${fechaFin}T23:59:59`);
         const duracionturno = horaToMinutos(duracion);
 
         for (
@@ -107,7 +107,7 @@ const supabase = createClient(
             const horas = Math.floor(m / 60).toString().padStart(2, "0");
             const minutos = (m % 60).toString().padStart(2, "0");
             const fechaISO = d.toISOString().split("T")[0];
-            const fechaHora = new Date(`${fechaISO}T${horas}:${minutos}:00Z`);
+            const fechaHora = new Date(`${fechaISO}T${horas}:${minutos}:00`);
       
             const ocupado = turnosReservados.some(
               (t) => new Date(t.fecha_hora_turno).getTime() === fechaHora.getTime()
