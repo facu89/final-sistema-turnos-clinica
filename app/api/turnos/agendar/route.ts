@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-
+import { sendConfirmacionTurno } from "@/hooks/email-resend-confirmacion-turno";
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -12,20 +12,19 @@ const supabaseAdmin = createClient(
   }
 );
 
-
-
 interface TurnoBody {
-     legajo_medico: number;
-     nombre_medico?: string;
-     dni_paciente: number;
-     fecha_hora_turno: Date;
-     id_especialidad: number;
-     desc_especialidad?:string;
-     id_obra: string | null;
-     turno_pagado?: boolean;
-     estado_turno: string;
-     turno_modificado?: boolean;
-     presencia_turno?: boolean; // opcional
+  legajo_medico: number;
+  nombre_medico?: string;
+  dni_paciente: number;
+  fecha_hora_turno: Date;
+  id_especialidad: number;
+  desc_especialidad?: string;
+  id_obra: string | null;
+  turno_pagado?: boolean;
+  estado_turno: string;
+  turno_modificado?: boolean;
+  presencia_turno?: boolean; // opcional
+  userId?: string;
 }
 export async function POST(request: Request) {
   const supabase = supabaseAdmin;
@@ -42,7 +41,9 @@ export async function POST(request: Request) {
       "estado_turno",
     ];
 
-    const missing = requiredFields.filter((f) => body[f] === undefined || body[f] === null);
+    const missing = requiredFields.filter(
+      (f) => body[f] === undefined || body[f] === null
+    );
     if (missing.length > 0) {
       return NextResponse.json(
         { error: `Faltan datos obligatorios: ${missing.join(", ")}` },
@@ -78,15 +79,31 @@ export async function POST(request: Request) {
           fecha_hora_turno: body.fecha_hora_turno,
           id_especialidad: body.id_especialidad,
           id_obra: body.id_obra,
-          turno_pagado: body.turno_pagado?? true,
+          turno_pagado: body.turno_pagado ?? true,
           estado_turno: body.estado_turno,
-          turno_modificado: body.turno_modificado?? false,
+          turno_modificado: body.turno_modificado ?? false,
           presencia_turno: body.presencia_turno ?? null,
         },
       ])
       .select()
       .single();
 
+    //para mandar el mail de confirmacion
+    const { data: dataUser, error: errorUser } = await supabase
+      .from("profiles")
+      .select("email,nombre,apellido")
+      .eq("dni_paciente", body.dni_paciente)
+      .maybeSingle();
+
+    await sendConfirmacionTurno({
+      nombre_paciente: dataUser?.nombre,
+      apellido_paciente: dataUser?.apellido,
+      nombre_medico: body.nombre_medico || "",
+      especialidad: body.desc_especialidad || "",
+      fecha_turno: body.fecha_hora_turno || new Date(),
+      email_paciente: dataUser?.email,
+    });
+    if (errorUser) throw errorUser;
     if (error) throw error;
 
     return NextResponse.json({
