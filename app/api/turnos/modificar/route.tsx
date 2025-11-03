@@ -12,6 +12,7 @@ const supabaseAdmin = createClient(
 interface TurnoUpdateBody {
   cod_turno: number;
   fecha_hora_turno: string;
+  turno_modificado?:boolean;
 }
 
 export async function PATCH(request: Request) {
@@ -32,7 +33,7 @@ export async function PATCH(request: Request) {
     // Buscar turno existente
     const { data: turnoExistente, error: checkError } = await supabase
       .from("turno")
-      .select("cod_turno, legajo_medico, fecha_hora_turno, estado_turno")
+      .select("cod_turno, legajo_medico, fecha_hora_turno, turno_modificado")
       .eq("cod_turno", cod_turno)
       .maybeSingle();
 
@@ -46,7 +47,7 @@ export async function PATCH(request: Request) {
     }
 
     // Si ya fue modificado, no permitir cambios
-    if (turnoExistente.estado_turno === "modificado") {
+    if (turnoExistente.turno_modificado === true) {
       return NextResponse.json(
         { error: "El turno ya fue modificado anteriormente" },
         { status: 400 }
@@ -75,7 +76,7 @@ export async function PATCH(request: Request) {
       .from("turno")
       .update({
         fecha_hora_turno,
-        estado_turno: true,
+        turno_modificado: true,
       })
       .eq("cod_turno", cod_turno)
       .select()
