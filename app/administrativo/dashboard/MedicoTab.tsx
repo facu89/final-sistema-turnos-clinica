@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
-import { UserPlus, Heart } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 async function getMedicos() {
@@ -26,7 +26,7 @@ async function getMedicos() {
     }
     //obtengo las especialidades por cada medico
     const medicosConEspecialidades = await Promise.all(
-      medicos.map(async (medico) => {
+      medicos.map(async (medico: any) => {
         try {
           const especialidadesResponse = await fetch(
             `/api/medico/medico-especialidad?legajo_medico=${medico.legajo_medico}`,
@@ -38,14 +38,13 @@ async function getMedicos() {
             }
           );
 
-          let especialidades = [];
+          let especialidades: any[] = [];
           if (especialidadesResponse.ok) {
             especialidades = await especialidadesResponse.json();
             if (!Array.isArray(especialidades)) {
               especialidades = [];
             }
           }
-          //armo un objeto medico que para agrear un arreglo de especialidades por cada medico
           return {
             ...medico,
             especialidades: especialidades,
@@ -71,44 +70,34 @@ async function getMedicos() {
 }
 
 export default function MedicoTab() {
-  const [medicosConEspecialidades, setMedicosConEspecialidades] = useState<
-    any[]
-  >([]);
+  const [medicosConEspecialidades, setMedicosConEspecialidades] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  // NUEVO: estado para el cartel (notice)
+  const [notice, setNotice] = useState<null | { type: "error" | "success" | "info"; text: string }>(null);
 
   useEffect(() => {
     const fetchMedicos = async () => {
       setLoading(true);
-
-      // Obtener médicos con especialidades ya incluidas
       const medicos = await getMedicos();
       setMedicosConEspecialidades(medicos);
-
       setLoading(false);
     };
 
     fetchMedicos();
   }, []);
-  // para filtrar
+
   const allMedicos = useMemo(() => {
     if (!search) return medicosConEspecialidades;
     const q = search.toLowerCase();
     return medicosConEspecialidades.filter((m: any) => {
       const nombreMatch = (m.nombre || "").toLowerCase().includes(q);
       const apellidoMatch = (m.apellido || "").toLowerCase().includes(q);
-      const nombreCompletoMatch = `${m.nombre || ""} ${m.apellido || ""}`
-        .toLowerCase()
-        .includes(q);
-      const dniMatch = String(m.dni_medico || "")
-        .toLowerCase()
-        .includes(q);
-      const legajoMatch = String(m.legajo_medico || "")
-        .toLowerCase()
-        .includes(q);
-      const telefonoMatch = String(m.telefono || "")
-        .toLowerCase()
-        .includes(q);
+      const nombreCompletoMatch = `${m.nombre || ""} ${m.apellido || ""}`.toLowerCase().includes(q);
+      const dniMatch = String(m.dni_medico || "").toLowerCase().includes(q);
+      const legajoMatch = String(m.legajo_medico || "").toLowerCase().includes(q);
+      const telefonoMatch = String(m.telefono || "").toLowerCase().includes(q);
       const especialidadesMatch =
         m.especialidades &&
         m.especialidades.some((esp: any) =>
@@ -147,21 +136,55 @@ export default function MedicoTab() {
         <section className="flex gap-2">
           <Input
             type="text"
-            placeholder="Buscar medico..."
+            placeholder="Buscar médico..."
             className="w-45"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </section>
         <Button
-          onClick={() =>
-            (window.location.href = "/administrativo/medicos/nuevo")
-          }
+          onClick={() => (window.location.href = "/administrativo/medicos/nuevo")}
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Registrar Nuevo Médico
         </Button>
       </div>
+
+      {/* NUEVO: Cartel de aviso */}
+      {notice && (
+        <div
+          role="alert"
+          className={`rounded-lg p-3 border text-sm flex items-start justify-between ${
+            notice.type === "error"
+              ? "bg-red-50 border-red-200 text-red-700"
+              : notice.type === "success"
+              ? "bg-green-50 border-green-200 text-green-700"
+              : "bg-blue-50 border-blue-200 text-blue-700"
+          }`}
+        >
+          <span>{notice.text}</span>
+          <button
+            onClick={() => setNotice(null)}
+            className="flex items-center justify-center rounded-full border ml-3 w-6 h-6 hover:bg-white"
+            aria-label="Cerrar aviso"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       <div className="w-full overflow-x-auto">
         <Table className="w-full">
@@ -176,7 +199,7 @@ export default function MedicoTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {allMedicos.map((medico) => (
+            {allMedicos.map((medico: any) => (
               <TableRow key={medico.legajo_medico}>
                 <TableCell className="font-medium">
                   {medico.nombre} {medico.apellido}
@@ -203,7 +226,9 @@ export default function MedicoTab() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => (window.location.href = `../administrativo/medicos/${medico.legajo_medico}/TurnosMedico`)}
+                    onClick={() =>
+                      (window.location.href = `../administrativo/medicos/${medico.legajo_medico}/TurnosMedico`)
+                    }
                   >
                     Ver Turnos
                   </Button>
@@ -213,7 +238,9 @@ export default function MedicoTab() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/modificarAgenda`)}
+                      onClick={() =>
+                        (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/modificarAgenda`)
+                      }
                     >
                       Modificar Agenda
                     </Button>
@@ -221,19 +248,23 @@ export default function MedicoTab() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/nuevaAgenda`)}
+                      onClick={() =>
+                        (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/nuevaAgenda`)
+                      }
                     >
                       Registrar Agenda
                     </Button>
                   )}
                 </TableCell>
-                
+
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button
-                    variant="ghost"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/datos/modificarDatos`)}
+                      onClick={() =>
+                        (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/datos/modificarDatos`)
+                      }
                     >
                       Modificar Datos
                     </Button>
@@ -241,34 +272,62 @@ export default function MedicoTab() {
                       variant={medico.estado === "activo" ? "destructive" : "outline"}
                       size="sm"
                       onClick={async () => {
-                        const nuevoEstado = medico.estado === "activo" ? "inactivo" : "activo";
-                        const res = await fetch("/api/medico/medico-estado", {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            legajo_medico: medico.legajo_medico,
-                            estado: nuevoEstado,
-                          }),
-                        });
+                        const nuevoEstado =
+                          medico.estado === "activo" ? "inactivo" : "activo";
+                        setNotice(null);
 
-                        const raw = await res.text();
-                        let json: any = null;
                         try {
-                          json = raw ? JSON.parse(raw) : null;
-                        } catch {}
+                          const res = await fetch("/api/medico/medico-estado", {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              legajo_medico: medico.legajo_medico,
+                              estado: nuevoEstado,
+                            }),
+                          });
 
-                        if (!res.ok || !json?.ok) {
-                          console.log("❌ No se pudo actualizar:", json?.message);
-                          return;
+                          const raw = await res.text();
+                          let json: any = null;
+                          try {
+                            json = raw ? JSON.parse(raw) : null;
+                          } catch {}
+
+                          if (res.status === 409) {
+                            setNotice({
+                              type: "error",
+                              text:
+                                json?.message ??
+                                "No se puede inhabilitar el médico porque tiene turnos asignados a futuro.",
+                            });
+                            return;
+                          }
+
+                          if (!res.ok || !json?.ok) {
+                            setNotice({
+                              type: "error",
+                              text: json?.message ?? "No se pudo actualizar el estado del médico.",
+                            });
+                            return;
+                          }
+
+                          setMedicosConEspecialidades((prev) =>
+                            prev.map((m) =>
+                              Number(m.legajo_medico) === Number(medico.legajo_medico)
+                                ? { ...m, estado: nuevoEstado }
+                                : m
+                            )
+                          );
+
+                          setNotice({
+                            type: "success",
+                            text: `Estado actualizado a "${nuevoEstado}".`,
+                          });
+                        } catch (err: any) {
+                          setNotice({
+                            type: "error",
+                            text: err?.message ?? "Error de red al actualizar el estado.",
+                          });
                         }
-
-                        setMedicosConEspecialidades((prev) =>
-                          prev.map((m) =>
-                            Number(m.legajo_medico) === Number(medico.legajo_medico)
-                              ? { ...m, estado: nuevoEstado }
-                              : m
-                          )
-                        );
                       }}
                     >
                       {medico.estado === "activo" ? "Inhabilitar" : "Habilitar"}
