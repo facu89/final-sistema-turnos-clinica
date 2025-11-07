@@ -179,7 +179,9 @@ function formatearFecha(fecha: Date): string {
 }
 
 const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+
 const BREVO_API_KEY = Deno.env.get("BREVO_API_KEY") ?? "";
+
 //notificacion al paciente para cuando tenga un turno al dia siguiente
 export async function sendAvisoTurno({
   nombre_paciente,
