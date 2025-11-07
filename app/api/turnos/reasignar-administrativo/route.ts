@@ -1,17 +1,23 @@
 // app/api/turnos/reasignar-nextday/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendAvisoReasignacion } from "@/hooks/email-resend-turno-reasignado";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
 // ---------- Helpers de tiempo ----------
 const pad2 = (n: number) => String(n).padStart(2, "0");
-const dateOnly = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const dateOnly = (d: Date) =>
+  new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+const addDays = (d: Date, n: number) => {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+};
 
 const mkDateTime = (date: Date, hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
@@ -35,48 +41,67 @@ const slotsBetween = (h1: string, h2: string, stepMin: number): string[] => {
 // Normaliza "HH:MM:SS" a "HH:MM"
 const hhmm = (t: string) => {
   const [h, m] = t.split(":");
-  return `${pad2(Number(h))}:${pad2(Number(m))}`;
+  return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
 };
 
 // Convierte "HH:MM:SS" a minutos (default 30')
 const timeToMinutes = (t: string | null | undefined): number => {
   if (!t) return 30;
   const [h, m] = t.split(":").map(Number);
-  return (h || 0) * 60 + (m || 0);
+  return h * 60 + m;
 };
 
 // ---------- Tipos ----------
-type TurnoRow = {
-  cod_turno: number;
-  legajo_medico: number | string;
-  dni_paciente: string;
-  id_especialidad: number | null;
-  id_obra: number | null;
-  fecha_hora_turno: string;
-  estado_turno: string;
-  turno_pagado: boolean | null;
-};
-
 type AgendaRow = {
   id_agenda: number;
   legajo_medico: number;
-  fechainiciovigencia: string;  // "yyyy-mm-dd"
-  fechafinvigencia: string;     // "yyyy-mm-dd"
-  duracionturno: string | null; // "HH:MM:SS"
+  fechainiciovigencia: string;
+  fechafinvigencia: string;
+  duracionturno: string;
 };
 
 type DiaSemanaRow = {
   id_agenda: number;
-  dia_semana: number;   // 1..7 (Lun..Dom)
-  hora_inicio: string;  // "HH:MM:SS"
-  hora_fin: string;     // "HH:MM:SS"
+  dia_semana: number;
+  hora_inicio: string;
+  hora_fin: string;
+};
+
+type TurnoSupabaseRow = {
+  cod_turno: number;
+  legajo_medico: number;
+  dni_paciente: string;
+  id_especialidad: number | null;
+  id_obra: number | null;
+  fecha_hora_turno: string;
+  estado_turno: string | null;
+  turno_pagado: boolean | null;
+  medico: {
+    legajo_medico: number;
+    nombre: string;
+    apellido: string;
+  };
+  profiles: {
+    dni_paciente: string;
+    nombre: string;
+    apellido: string;
+    email: string;
+  };
+  especialidad: {
+    descripcion: string;
+  };
 };
 
 // ---------- Acceso a agenda ----------
-async function getAgendaVigente(legajo: number, base: Date): Promise<AgendaRow | null> {
+async function getAgendaVigente(
+  legajo: number,
+  base: Date,
+): Promise<AgendaRow | null> {
   const { data, error } = await supabase
     .from("agenda")
-    .select("id_agenda,legajo_medico,fechainiciovigencia,fechafinvigencia,duracionturno")
+    .select(
+      "id_agenda,legajo_medico,fechainiciovigencia,fechafinvigencia,duracionturno",
+    )
     .eq("legajo_medico", legajo);
 
   if (error) return null;
@@ -84,21 +109,23 @@ async function getAgendaVigente(legajo: number, base: Date): Promise<AgendaRow |
   if (!rows.length) return null;
 
   const b = dateOnly(base);
-  const candidatas = rows.filter(a => {
+  const candidatas = rows.filter((a) => {
     const ini = dateOnly(new Date(a.fechainiciovigencia));
     const fin = dateOnly(new Date(a.fechafinvigencia));
     return (b >= ini && b <= fin) || (ini > b);
   });
   if (!candidatas.length) return null;
 
-  const vigentes = candidatas.filter(a => {
+  const vigentes = candidatas.filter((a) => {
     const ini = dateOnly(new Date(a.fechainiciovigencia));
     const fin = dateOnly(new Date(a.fechafinvigencia));
     return b >= ini && b <= fin;
   });
 
   const lista = (vigentes.length ? vigentes : candidatas).sort(
-    (a, b2) => new Date(a.fechainiciovigencia).getTime() - new Date(b2.fechainiciovigencia).getTime()
+    (a, b2) =>
+      new Date(a.fechainiciovigencia).getTime() -
+      new Date(b2.fechainiciovigencia).getTime(),
   );
   return lista[0];
 }
@@ -113,47 +140,65 @@ async function getDiasSemanaAgenda(id_agenda: number): Promise<DiaSemanaRow[]> {
   return (data ?? []) as DiaSemanaRow[];
 }
 
-/** Primer día siguiente que el médico atiende, respetando agenda, vigencia y días (1..7 Lun..Dom) */
 async function nextWorkingDayForDoctor(
   legajo: number,
-  base: Date
-): Promise<{ date: Date; windows: { h1: string; h2: string; slot: number }[] }> {
+  base: Date,
+): Promise<{
+  date: Date;
+  windows: { h1: string; h2: string; slot: number }[];
+}> {
   let day = addDays(dateOnly(base), 1);
 
   for (let i = 0; i < 60; i++) {
     const agenda = await getAgendaVigente(legajo, day);
-    if (!agenda) { day = addDays(day, 1); continue; }
+    if (!agenda) {
+      day = addDays(day, 1);
+      continue;
+    }
 
     const ini = dateOnly(new Date(agenda.fechainiciovigencia));
     const fin = dateOnly(new Date(agenda.fechafinvigencia));
     const d = dateOnly(day);
-    if (d < ini || d > fin) { day = addDays(day, 1); continue; }
+    if (d < ini || d > fin) {
+      day = addDays(day, 1);
+      continue;
+    }
 
     const dias = await getDiasSemanaAgenda(agenda.id_agenda);
-    if (!dias.length) { day = addDays(day, 1); continue; }
+    if (!dias.length) {
+      day = addDays(day, 1);
+      continue;
+    }
 
     // 0..6 (Dom..Sáb) -> 1..7 (Lun..Dom)
-    const wd1_7 = ((d.getDay() + 6) % 7) + 1;
-    const delDia = dias.filter(x => x.dia_semana === wd1_7);
-    if (!delDia.length) { day = addDays(day, 1); continue; }
+    const wd1_7 = ((day.getDay() + 6) % 7) + 1;
+    const delDia = dias.filter((x) => x.dia_semana === wd1_7);
+    if (!delDia.length) {
+      day = addDays(day, 1);
+      continue;
+    }
 
     const slot = Math.max(1, timeToMinutes(agenda.duracionturno));
-    const windows = delDia.map(x => ({
+    const windows = delDia.map((x) => ({
       h1: hhmm(x.hora_inicio),
       h2: hhmm(x.hora_fin),
-      slot
+      slot,
     }));
 
-    return { date: d, windows };
+    return { date: day, windows };
   }
 
-  throw new Error("No se encontró un día hábil según la agenda del médico en los próximos 60 días");
+  throw new Error(
+    "No se encontró un día hábil según la agenda del médico en los próximos 60 días",
+  );
 }
 
 // ---------- Ocupados del día ----------
 async function getOcupados(legajo: number, date: Date): Promise<Set<string>> {
-  const ini = new Date(date); ini.setHours(0, 0, 0, 0);
-  const fin = new Date(date); fin.setHours(23, 59, 59, 999);
+  const ini = new Date(date);
+  ini.setHours(0, 0, 0, 0);
+  const fin = new Date(date);
+  fin.setHours(23, 59, 59, 999);
 
   const { data, error } = await supabase
     .from("turno")
@@ -177,39 +222,58 @@ export async function POST(req: NextRequest) {
   try {
     const { ids } = (await req.json()) as { ids: (number | string)[] };
     if (!Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: "Debés enviar ids: number[]" }, { status: 400 });
+      return NextResponse.json({ error: "Debés enviar ids: number[]" }, {
+        status: 400,
+      });
     }
 
-    const { data: rows, error: selErr } = await supabase
+    // Consulta tipada directamente
+    const { data: turnos, error: selErr } = await supabase
       .from("turno")
-      .select("cod_turno,legajo_medico,dni_paciente,id_especialidad,id_obra,fecha_hora_turno,estado_turno,turno_pagado")
-      .in("cod_turno", ids.map(Number));
+      .select(`
+        cod_turno,
+        legajo_medico,
+        dni_paciente,
+        id_especialidad,
+        id_obra,
+        fecha_hora_turno,
+        estado_turno,
+        turno_pagado,
+        medico(legajo_medico, nombre, apellido),
+        profiles(dni_paciente, nombre, apellido, email),
+        especialidad(descripcion)
+      `)
+      .in("cod_turno", ids.map(Number))
+      .returns<TurnoSupabaseRow[]>();
 
-    if (selErr) throw selErr;
+    if (selErr) {
+      return NextResponse.json({ error: selErr.message }, { status: 500 });
+    }
 
-    const turnos = (rows ?? []) as TurnoRow[];
-    if (turnos.length === 0) {
+    if (!turnos || turnos.length === 0) {
       return NextResponse.json({ success: true, resultados: [] });
     }
 
-    // Orden correlativo por médico y fecha
+    // Ahora 'turnos' ya tiene el tipo correcto automáticamente
     turnos.sort(
       (a, b) =>
-        Number(a.legajo_medico) - Number(b.legajo_medico) ||
-        new Date(a.fecha_hora_turno).getTime() - new Date(b.fecha_hora_turno).getTime()
+        a.legajo_medico - b.legajo_medico ||
+        new Date(a.fecha_hora_turno).getTime() -
+          new Date(b.fecha_hora_turno).getTime(),
     );
 
     // Agrupar por médico
-    const porMedico = new Map<number, TurnoRow[]>();
+    const porMedico = new Map<number, TurnoSupabaseRow[]>();
     for (const t of turnos) {
-      const key = Number(t.legajo_medico);
+      const key = t.legajo_medico;
       const list = porMedico.get(key) ?? [];
       list.push(t);
       porMedico.set(key, list);
     }
 
-    const resultados: Array<{ id: number; nuevo?: number; error?: string }> = [];
-    const agendaFailIds: number[] = []; // para armar el mensaje agregado
+    const resultados: Array<{ id: number; nuevo?: number; error?: string }> =
+      [];
+    const agendaFailIds: number[] = [];
 
     for (const [legajo, lista] of porMedico.entries()) {
       // Base = mayor fecha entre los seleccionados (o now)
@@ -227,34 +291,39 @@ export async function POST(req: NextRequest) {
         targetDay = r.date;
         windows = r.windows;
       } catch {
-        // No hay agenda hábil para este médico en 60 días: marcar error en TODOS los de esta lista
-        const idsFallidos = lista.map(x => x.cod_turno);
+        const idsFallidos = lista.map((x) => x.cod_turno);
         agendaFailIds.push(...idsFallidos);
-        idsFallidos.forEach(id => {
+        idsFallidos.forEach((id) => {
           resultados.push({
             id,
             error:
               "No se encontró un día hábil según la agenda del médico en los próximos 60 días",
           });
         });
-        continue; // seguir con el siguiente médico sin cortar el proceso
+        continue;
       }
 
       // Generar slots del día
       let candidatos: string[] = [];
-      windows.forEach(w => {
+      windows.forEach((w) => {
         candidatos.push(...slotsBetween(w.h1, w.h2, w.slot));
       });
 
       // Quitar ocupados
       const taken = await getOcupados(legajo, targetDay!);
-      candidatos = candidatos.filter(h => !taken.has(h));
+      candidatos = candidatos.filter((h) => !taken.has(h));
 
       // Asignar en estricto orden
       let idx = 0;
       for (const t of lista) {
+        console.log("Turno completo:", t);
+        console.log("DNI desde profiles:", t.profiles.dni_paciente);
+
         if (idx >= candidatos.length) {
-          resultados.push({ id: t.cod_turno, error: "No hay más huecos libres ese día" });
+          resultados.push({
+            id: t.cod_turno,
+            error: "No hay más huecos libres ese día",
+          });
           continue;
         }
 
@@ -277,8 +346,8 @@ export async function POST(req: NextRequest) {
 
         // 2) crear nuevo turno heredando el estado original
         const nuevoTurno = {
-          legajo_medico: Number(legajo),
-          dni_paciente: t.dni_paciente,
+          legajo_medico: legajo,
+          dni_paciente: t.profiles.dni_paciente, // ✅ Acceso directo sin casting
           id_especialidad: t.id_especialidad,
           id_obra: t.id_obra,
           fecha_hora_turno: nuevaFecha,
@@ -286,6 +355,15 @@ export async function POST(req: NextRequest) {
           turno_pagado: t.turno_pagado ?? false,
         };
 
+        console.log("Nuevo turno a insertar:", nuevoTurno);
+        const envio = await sendAvisoReasignacion({
+          nombre_paciente: t.profiles.nombre,
+          apellido_paciente: t.profiles.apellido,
+          nombre_medico: t.medico.nombre,
+          especialidad: t.especialidad.descripcion,
+          fecha_turno_nuevo: new Date(t.fecha_hora_turno),
+          email_paciente: t.profiles.email,
+        });
         const { data: ins, error: insErr } = await supabase
           .from("turno")
           .insert(nuevoTurno)
@@ -293,6 +371,7 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (insErr) {
+          console.error("Error al insertar:", insErr);
           resultados.push({ id: t.cod_turno, error: insErr.message });
         } else {
           resultados.push({ id: t.cod_turno, nuevo: ins?.cod_turno });
@@ -303,16 +382,24 @@ export async function POST(req: NextRequest) {
     }
 
     // Mensaje agregado para mostrar arriba (opcional en el front)
-    const agendaFailMessage =
-      agendaFailIds.length > 0
-        ? `No se encontró un día hábil según la agenda del médico en los próximos 60 días para los siguientes turnos: ${agendaFailIds
-            .map(id => `#${id}`)
-            .join(", ")}`
-        : undefined;
+    const agendaFailMessage = agendaFailIds.length > 0
+      ? `No se encontró un día hábil según la agenda del médico en los próximos 60 días para los siguientes turnos: ${
+        agendaFailIds
+          .map((id) => `#${id}`)
+          .join(", ")
+      }`
+      : undefined;
 
-    return NextResponse.json({ success: true, resultados, agendaFailIds, agendaFailMessage });
+    return NextResponse.json({
+      success: true,
+      resultados,
+      agendaFailIds,
+      agendaFailMessage,
+    });
   } catch (e: any) {
     console.error("reasignar-administrativo error:", e);
-    return NextResponse.json({ error: e?.message ?? "Error interno" }, { status: 500 });
+    return NextResponse.json({ error: e?.message ?? "Error interno" }, {
+      status: 500,
+    });
   }
 }
