@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 export async function GET() {
@@ -20,7 +20,6 @@ export async function GET() {
         turno_modificado,
         legajo_medico,
         medico!inner(
-          legajo_medico,
           nombre,
           apellido
         ),
@@ -30,7 +29,7 @@ export async function GET() {
           apellido
         ),
         especialidad(id_especialidad,descripcion)
-      `
+      `,
       )
       .order("fecha_hora_turno", { ascending: true });
 
@@ -89,7 +88,7 @@ export async function GET() {
     console.error("Error en API turnos/todos:", error);
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -99,8 +98,8 @@ SELECT cod_turno, profiles.dni_paciente, fecha_hora_turno, legajo_medico,
  nombre as nombre_paciente, apellido as apellido_paciente,
  nombre_medico, apellido_medico
 FROM
-(SELECT cod_turno, dni_paciente, fecha_hora_turno, medico.legajo_medico, nombre as nombre_medico, apellido as apellido_medico FROM turno 
-JOIN medico 
+(SELECT cod_turno, dni_paciente, fecha_hora_turno, medico.legajo_medico, nombre as nombre_medico, apellido as apellido_medico FROM turno
+JOIN medico
 ON turno.legajo_medico = medico.legajo_medico
 ) AS turno_medico
 JOIN profiles ON profiles.dni_paciente = turno_medico.dni_paciente

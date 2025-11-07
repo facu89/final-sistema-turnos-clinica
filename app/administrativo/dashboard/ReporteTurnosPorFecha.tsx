@@ -157,10 +157,10 @@ export const ReporteTurnosPorFecha = ({
           loading={loading}
           mostrarMedico={true}
           mostrarEspecialidad={true}
-        >
+        ></FiltrosReportes>
+        <div id="div-contenido-pdf">
           <Button
             className="w-full"
-            disabled={loading}
             onClick={() =>
               generarPDFTablaTurnos(
                 filteredTurnos,
@@ -171,8 +171,6 @@ export const ReporteTurnosPorFecha = ({
             <FileText className="h-4 w-4 mr-2" />
             {loading ? "Cargando..." : "Generar Reporte"}
           </Button>
-        </FiltrosReportes>
-        <div id="div-contenido-pdf">
           <Table className="w-full text-sm">
             <TableHeader>
               <TableRow>
