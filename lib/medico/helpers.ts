@@ -87,6 +87,29 @@ export async function syncConveniosMedico(
         .in("id_obra", eliminar);
     }
 
+    //  actualizar turnos a "Pendiente de pago"
+    if (eliminar.length > 0) {
+      for (const eliminado of eliminar) {
+        const { error: errorTurnos } = await supabase
+          .from("turnos")
+          .update({ estado: "Pendiente de pago" })
+          .eq("legajo_medico", legajo_medico)
+          .eq("id_obra", eliminado)
+          .neq("estado", "Cancelado"); // opcional: no afectar cancelados
+
+        if (errorTurnos) {
+          console.warn(
+            ` Error actualizando turnos del médico de ID${legajo_medico} para obra de ID ${eliminado}:`,
+            errorTurnos.message
+          );
+        } else {
+          console.log(
+            ` Turnos del médico de ID ${legajo_medico} con obra de ID ${eliminado} marcados como "Pendiente de pago".`
+          );
+        }
+      }
+    }
+
     // insertar convenios nuevos
     const agregar = convenios.filter((c) => !actualesSet.has(Number(c.id_obra)));
     if (agregar.length > 0) {

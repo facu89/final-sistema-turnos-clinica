@@ -66,7 +66,18 @@ function buildMatricula(prefijo: string, numeroMat: string) {
 }
 
 async function guardarDatosEnBD(nuevosDatos: DatosEditables, legajo_medico: string) {
-    
+    if (
+        !nuevosDatos.nombre?.trim() ||
+        !nuevosDatos.apellido?.trim() ||
+        !nuevosDatos.dni_medico?.trim() ||
+        !nuevosDatos.telefono?.trim() ||
+        !nuevosDatos.matricula?.trim() ||
+        !nuevosDatos.tarifa ||
+        !nuevosDatos.especialidades?.length
+    ) {
+        alert(" Debes completar todos los campos obligatorios antes de guardar.");
+        return;
+    }
     try {
         // NOTE: enviar a la ruta REST correcta.
         const response = await fetch("/api/medico", {
@@ -110,8 +121,7 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
     const [obraSeleccionada, setObraSeleccionada] = useState<string | null>(null);
     const [fechaInicio, setFechaInicio] = useState<string>(
         new Date().toISOString().split("T")[0]
-    ); ///nuevooo
-    //const [isLoadingObras, setIsLoadingObras] = useState(true);
+    );
     const [error, setError] = useState <string | null>(null);
     const [exito, setExito] = useState(false); //esto tiene que ir en la parte del handle submit
     const [isLoading, setIsLoading] = useState(false); // en el submit y el cancel
@@ -274,6 +284,15 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
         (o) => !convenios.some((c) => c.id_obra === o.id_obra)
     );
 
+    const faltanCampos =
+        !String(datosTemp.nombre ?? "").trim() ||
+        !String(datosTemp.apellido ?? "").trim() ||
+        !String(datosTemp.dni_medico ?? "").trim() ||
+        !String(datosTemp.telefono ?? "").trim() ||
+        !String(datosTemp.matricula ?? "").trim() ||
+        !datosTemp.tarifa ||
+        !(Array.isArray(datosTemp.especialidades) && datosTemp.especialidades.length > 0);
+
 
     return (
         <>
@@ -382,8 +401,15 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                         <Input
                             id="telefono"
                             type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={datosTemp.telefono}
-                            onChange={(e) => setDatosTemp({...datosTemp, telefono: e.target.value})}
+                            onChange={(e) =>
+                                setDatosTemp({
+                                ...datosTemp,
+                                telefono: e.target.value.replace(/\D/g, ""), // elimina cualquier carácter no numérico
+                                })
+                            }
                         />
                     </div>
 
@@ -393,15 +419,16 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                         Tarifa (Pesos Argentinos)
                         </Label>
                         <Input
-                        id="pesosArgentinos"
-                        type="number"
-
-                        value={datosTemp.tarifa ?? ''}
-                        onChange={(e) => {
-                            const v = e.target.value;
-                            const num = v === "" ? 0 : Number(v);
-                            setDatosTemp({ ...datosTemp, tarifa: isNaN(num) ? 0 : num });
-                        }}
+                            id="pesosArgentinos"
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={datosTemp.tarifa === 0 ? "" : datosTemp.tarifa}
+                            onChange={(e) => {
+                                const v = e.target.value;
+                                const num = v === "" ? 0 : Number(v);
+                                setDatosTemp({ ...datosTemp, tarifa: num });
+                            }}
                         />
                     </div>
 
@@ -529,16 +556,16 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                             type="button"
                             variant="outline"
                             onClick={handleCancelar}
-                             // disabled={isLoading} nose que esss
                             className="flex-1"
+                            
                         >
                         Cancelar
                         </Button>
                         <Button
                             type="button" 
-                            //disabled={isLoading} 
                             className="flex-1"
-                            onClick={handleGuardar}>
+                            onClick={handleGuardar}
+                            disabled={faltanCampos}>
                             Guardar
                         </Button>
                     </div>
