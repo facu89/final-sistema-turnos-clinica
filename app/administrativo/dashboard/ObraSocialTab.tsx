@@ -336,6 +336,7 @@ export const ObraSocialTab = () => {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
+                    {/* MODIFICAR OBRA SOCIAL */}
                     <Button
                       variant="outline"
                       size="sm"
@@ -344,7 +345,8 @@ export const ObraSocialTab = () => {
                     >
                       Modificar
                     </Button>
-
+                    
+                    {/* DESHABILITAR OBRA SOCIAL */}
                     {obra.estado === "Habilitado" ? (
                       <Button
                         variant="destructive"
