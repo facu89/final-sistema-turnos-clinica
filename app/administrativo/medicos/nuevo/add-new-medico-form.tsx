@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -312,30 +313,25 @@ export function AddMedicoForm({
                 />
               </div>
 
-              {/* Especialidades - NUEVA VERSIÓN CON CHECKBOXES */}
+              {/* Especialidades - VERSIÓN RADIO (selección única) */}
               <div className="grid gap-4">
                 <Label>Especialidades *</Label>
                 <p className="text-sm text-gray-600">
-                  Selecciona las especialidades del médico (debe elegir al menos
-                  una)
+                  Selecciona la especialidad principal del médico (solo se puede elegir una)
                 </p>
-                <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
+                <RadioGroup
+                  value={especialidadesSeleccionadas[0] || ""}
+                  onValueChange={(val) => setEspecialidadesSeleccionadas([val])}
+                  className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4"
+                >
                   {especialidades.map((esp) => (
                     <div
                       key={esp.id_especialidad}
                       className="flex items-center space-x-2"
                     >
-                      <Checkbox
+                      <RadioGroupItem
+                        value={esp.id_especialidad}
                         id={`esp-${esp.id_especialidad}`}
-                        checked={especialidadesSeleccionadas.includes(
-                          esp.id_especialidad
-                        )}
-                        onCheckedChange={(checked) =>
-                          handleEspecialidadChange(
-                            esp.id_especialidad,
-                            checked as boolean
-                          )
-                        }
                       />
                       <Label
                         htmlFor={`esp-${esp.id_especialidad}`}
@@ -345,7 +341,7 @@ export function AddMedicoForm({
                       </Label>
                     </div>
                   ))}
-                </div>
+                </RadioGroup>
                 <p className="text-xs text-gray-500">
                   {especialidadesSeleccionadas.length} especialidad(es)
                   seleccionada(s)

@@ -4,7 +4,6 @@ import { CheckCircle } from "lucide-react";
 
 export const TurnoCard = ({ turno }: { turno: any }) => {
 const { medico, loading, error } = useMedico(turno.legajo_medico);
-console.log(medico);
   return (
     <div className="p-4">
       <p className="text-sm font-medium">

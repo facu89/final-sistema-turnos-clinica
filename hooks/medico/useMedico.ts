@@ -18,7 +18,6 @@ export function useMedico(legajo_medico?: number) {
   const [medico, setMedico] = useState<Medico | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-console.log(legajo_medico,"useMedico llega esto ");
   useEffect(() => {
     if (!legajo_medico) return;
 

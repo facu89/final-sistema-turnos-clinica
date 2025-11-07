@@ -69,6 +69,7 @@ if (!agenda) {
         if (!resTurnos.ok) throw new Error(jsonTurnos.error || "Error al cargar turnos");
 
         const turnosOcupados: TurnoBody[] = Array.isArray(jsonTurnos) ? jsonTurnos : [];
+        console.log("Turnos ocupados recibidos de la API:", turnosOcupados);
 
         // Generar los turnos libres
         const libresMedico = generarTurnosLibres([agenda], turnosOcupados).map((iso) => ({
@@ -118,9 +119,11 @@ if (!agenda) {
           { cache: "no-store" }
         );
         const jsonTurnos = await resTurnos.json();
+        console.log("data",jsonTurnos);
+        
         if (!resTurnos.ok) throw new Error(jsonTurnos.error || "Error al obtener turnos");
         const turnosOcupados: TurnoBody[] = Array.isArray(jsonTurnos) ? jsonTurnos : [];
-
+        console.log(turnosOcupados,"linea 124");
         //  Generar turnos libres y asociar el médico
         const libresConMedico = agendasData.flatMap((agenda) =>
           generarTurnosLibres([agenda], turnosOcupados).map((iso) => ({
@@ -171,22 +174,56 @@ ayer.setDate(hoy.getDate()-1);
     if (!agenda || !agenda.dia_semana?.length) continue;
 
     //  Filtrar turnos ocupados del mismo médico
+    console.log("turnos ocuapdos",turnosOcupados)
     const turnosDelMismoMedico = turnosOcupados.filter(
-      (t) => t.legajo_medico === agenda.legajo_medico
+      (t) => t.legajo_medico == agenda.legajo_medico
     );
 
-    // Convertir fechas ocupadas al formato ISO para comparación
+    console.log("Turnos encontrados para médico", agenda.legajo_medico, ":", turnosDelMismoMedico);
+
+    // Convertir fechas ocupadas manteniendo la hora de Argentina
     const ocupadas = new Set(
       turnosDelMismoMedico.map((t) => {
-        // Si es string ISO, usar directamente
-        if (typeof t.fecha_hora_turno === 'string') {
-          return t.fecha_hora_turno.slice(0, 16);
+        const fechaOriginal = t.fecha_hora_turno;
+        // Si es string, usar directamente sin conversión
+        if (typeof fechaOriginal === 'string') {
+          const fechaNormalizada = fechaOriginal.slice(0, 16); // Remover segundos si existen
+          console.log("Procesando turno ocupado:", {
+            original: fechaOriginal,
+            normalizado: fechaNormalizada
+          });
+          return fechaNormalizada;
         }
-        // Si es Date, convertir a ISO
-        return new Date(t.fecha_hora_turno).toISOString().slice(0, 16);
+        
+        // Si es Date, convertir manteniendo zona horaria
+        const fecha = new Date(fechaOriginal);
+        const fechaStr = fecha.toLocaleString("es-AR", {
+          timeZone: "America/Argentina/Buenos_Aires",
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        
+        // Convertir formato argentino a ISO
+        const [dia, mes, resto] = fechaStr.split('/');
+        const [anio, hora] = resto.split(',');
+        const fechaNormalizada = `${anio.trim()}-${mes}-${dia}T${hora.trim()}`;
+        
+        console.log("Procesando turno ocupado:", {
+          original: fechaOriginal,
+          convertido: fechaStr,
+          normalizado: fechaNormalizada
+        });
+        
+        return fechaNormalizada;
       })
     );
-    console.log("Turnos ocupados:", Array.from(ocupadas));
+    
+    console.log("Total turnos ocupados para médico", agenda.legajo_medico, ":", ocupadas.size);
+    console.log("Lista de turnos ocupados:", Array.from(ocupadas));
     const inicioAgenda = new Date(agenda.fechainiciovigencia);
     const finAgenda = new Date(agenda.fechafinvigencia);
     const duracionMin = parseDuracionToMinutos(agenda.duracionturno);
@@ -211,18 +248,38 @@ ayer.setDate(hoy.getDate()-1);
         turno < end;
         turno = new Date(turno.getTime() + duracionMs)
       ) {
-        const iso = new Date(
-          turno.toLocaleString("en-US", { timeZone: "America/Argentina/Buenos_Aires" })
-        ).toISOString().slice(0, 16);
+        // Generar fecha en formato argentino
+        const fechaStr = turno.toLocaleString("es-AR", {
+          timeZone: "America/Argentina/Buenos_Aires",
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        
+        // Convertir a formato ISO manteniendo hora argentina
+        const [dia, mes, resto] = fechaStr.split('/');
+        const [anio, hora] = resto.split(',');
+        const turnoNormalizado = `${anio.trim()}-${mes}-${dia}T${hora.trim()}`;
 
         //  Evitar horarios pasados de ayer
         if (turno < ayer) continue;
 
+        // Verificar si está ocupado
+        const estaOcupado = ocupadas.has(turnoNormalizado);
+        if (estaOcupado) {
+          console.log("Turno ocupado encontrado:", {
+            turnoGenerado: turnoNormalizado,
+            fechaOriginal: fechaStr,
+            ocupadas: Array.from(ocupadas)
+          });
+        }
+
         // Solo agregar si no está ocupado para este médico
-        if (!ocupadas.has(iso)) {
-          libres.push(iso);
-        } else {
-          console.log("Turno ocupado, no agregado:", iso);
+        if (!estaOcupado) {
+          libres.push(turnoNormalizado);
         }
       }
 
@@ -238,64 +295,7 @@ function parseDuracionToMinutos(duracion: string | number): number {
   return Number(hh) * 60 + Number(mm) + Math.round(Number(ss) / 60);
 }
 
-// export function generarTurnosLibres(
-//   agendas: Agenda[],
-//   turnosOcupados: TurnoBody[]
-// ): string[] {
-//   const libres: string[] = [];
-//   const hoy = new Date();
-//   const limite = new Date();
-//   limite.setDate(hoy.getDate() + 30);
 
-//   for (const agenda of agendas) {
-//     if (!agenda || !agenda.dia_semana?.length) continue;
-
-//     // Filtrar los turnos ocupados del mismo médico
-//     const turnosDelMismoMedico = turnosOcupados.filter(
-//       (t) => t.legajo_medico === agenda.legajo_medico
-//     );
-
-//     const ocupadas = new Set(
-//       turnosDelMismoMedico.map((t) =>
-//         new Date(t.fecha_hora_turno).toISOString().slice(0, 16)
-//       )
-//     );
-
-//     const inicioAgenda = new Date(agenda.fechainiciovigencia);
-//     const finAgenda = new Date(agenda.fechafinvigencia);
-//     const duracionMin = parseDuracionToMinutos(agenda.duracionturno);
-//     if (!duracionMin || isNaN(duracionMin)) continue;
-
-//     const duracionMs = duracionMin * 60 * 1000;
-//     let fecha = new Date(Math.max(hoy.getTime(), inicioAgenda.getTime()));
-
-//     while (fecha <= finAgenda && fecha <= limite) {
-//       const dia = fecha.getDay() === 0 ? 7 : fecha.getDay();
-//       const diaActivo = agenda.dia_semana.find((d) => d.dia_semana === dia);
-//       if (!diaActivo) {
-//         fecha.setDate(fecha.getDate() + 1);
-//         continue;
-//       }
-
-//       const start = dateWithTime(fecha, diaActivo.hora_inicio);
-//       const end = dateWithTime(fecha, diaActivo.hora_fin);
-
-//       for (
-//         let turno = new Date(start);
-//         turno < end;
-//         turno = new Date(turno.getTime() + duracionMs)
-//       ) {
-//         const iso = turno.toISOString().slice(0, 16);
-//         // Solo agregar si no está ocupado para este médico
-//         if (!ocupadas.has(iso)) libres.push(iso);
-//       }
-
-//       fecha.setDate(fecha.getDate() + 1);
-//     }
-//   }
-
-//   return libres;
-// }
 
 
 
