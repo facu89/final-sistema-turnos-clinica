@@ -67,18 +67,9 @@ function buildMatricula(prefijo: string, numeroMat: string) {
 }
 
 async function guardarDatosEnBD(nuevosDatos: DatosEditables, legajo_medico: string) {
-    if (
-        !nuevosDatos.nombre?.trim() ||
-        !nuevosDatos.apellido?.trim() ||
-        !nuevosDatos.dni_medico?.trim() ||
-        !nuevosDatos.telefono?.trim() ||
-        !nuevosDatos.matricula?.trim() ||
-        !nuevosDatos.tarifa ||
-        !nuevosDatos.especialidades?.length
-    ) {
-        alert(" Debes completar todos los campos obligatorios antes de guardar.");
-        return;
-    }
+    console.log("nuevos datos:", nuevosDatos);
+    
+    console.log("guardando en BD");
     try {
         // NOTE: enviar a la ruta REST correcta.
         const response = await fetch("/api/medico", {
@@ -156,14 +147,23 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                 // además, cargar obras sociales para futuros convenios
                 try {
                 const resConvenios = await fetch(`/api/medico/medico-obraSocial?legajo_medico=${legajo_medico}`, {
-                    cache: "no-store",
+                cache: "no-store",
                 });
-                const listaConvenios: ConvenioMedico[] = resConvenios.ok
-                    ? await resConvenios.json()
-                    : [];
+                const listaCruda = resConvenios.ok ? await resConvenios.json() : [];
+
+                // 🔧 Normalizamos la estructura a la interfaz ConvenioMedico
+                const listaConvenios: ConvenioMedico[] = listaCruda.map((c: any) => ({
+                id_obra: String(c.obra_social?.id_obra ?? ""),
+                descripcion: c.obra_social?.descripcion ?? "",
+                estado: c.obra_social?.estado ?? "",
+                telefono_contacto: c.obra_social?.telefono_contacto ?? null,
+                sitio_web: c.obra_social?.sitio_web ?? null,
+                fecha_alta: c.fecha_alta ?? null,
+                }));
+
                 setConvenios(listaConvenios);
-                
                 setDatosTemp((prev) => ({ ...prev, convenios: listaConvenios }));
+
 
                 const resObras = await fetch("/api/obraSocial");
                 const obrasJson = await resObras.json();
@@ -212,6 +212,7 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
     const handleGuardar = async () => {
         try {
             setDatos (datosTemp);
+            console.log("datosTEMPO:", datosTemp);
             const guardadoExitoso = await guardarDatosEnBD(datosTemp, legajo_medico);
 
             if (guardadoExitoso) {
