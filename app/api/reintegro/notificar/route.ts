@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 //TUVE  QUE MOVER ESTA FUNCION A BACKEND PORQUE LA API KEY DE RESEND NO SE PUEDE ACCEDER EN FRONT
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (turnoError || !turnoData?.profiles) {
       return NextResponse.json(
         { error: "No se encontraron datos del paciente" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
       }
 
       admins.forEach(async (admin: any) => {
+        console.log(`Enviando notificación a ${admin.email}`);
         await sendReintegroNotification({
           administrativoEmail: admin.email,
           dniPaciente,
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
         error: "Error interno del servidor",
         details: error instanceof Error ? error.message : error,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
