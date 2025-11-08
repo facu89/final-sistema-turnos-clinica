@@ -31,6 +31,27 @@ export default function NuevaAgendaForm({
   const [loading, setLoading] = useState(true);
   const [medico, setMedico] = useState<any>(null);
   const [agendaCreada, setAgendaCreada] = useState(false);
+  const [finMin, setFinMin] = useState("");
+  const fechaHoy = new Date().toISOString().split("T")[0];
+  const [guardando, setGuardando] = useState(false);
+
+  const calcularFinMin = (fechaStr: string) => {
+    if (!fechaStr) return "";
+    const fecha = new Date(fechaStr);
+    fecha.setDate(fecha.getDate() + 7);
+    return fecha.toISOString().split("T")[0];
+  };
+
+  const handleInicioChange = (e: any) => {
+    const fecha = e.target.value;
+    setFechaInicio(fecha);
+  
+    const finCalculado = calcularFinMin(fecha);
+    setFinMin(finCalculado);
+  
+    if (!fechaFin) setFechaFin(finCalculado);
+  };
+  
 
   useEffect(() => {
     const fetchMedico = async () => {
@@ -61,10 +82,36 @@ export default function NuevaAgendaForm({
     }))
   );
 
+  function validarDias(diasAtencion: any[]) {
+    for (let i = 0; i < diasAtencion.length; i++) {
+      const dia = diasAtencion[i];
+      if (dia.activo) {
+        // validar que haya hora de inicio y fin
+        if (!dia.hora_inicio || !dia.hora_fin) {
+          return `Faltan horarios en ${diasSemana[i]}`;
+        }
+  
+        // validar que inicio < fin
+        if (dia.hora_inicio >= dia.hora_fin) {
+          return `El horario de ${diasSemana[i]} no es válido (hora de inicio debe ser menor a la de fin).`;
+        }
+      }
+    }
+    return null; // todo OK
+  }
+  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setGuardando(true);
     setMensaje("");
+
+    const errorHorario = validarDias(diasAtencion);
+    if (errorHorario) {
+      setGuardando(false);
+      setMensaje(errorHorario);
+      return; // detenemos el guardado
+    }
 
     const diasSeleccionados = diasAtencion
       .map((dia, index) => ({
@@ -80,7 +127,7 @@ export default function NuevaAgendaForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           legajo_medico: Number(legajo_medico),
-          fechainiciovigencia: new Date().toISOString().split("T")[0],
+          fechainiciovigencia: fechaInicio,
           fechafinvigencia: fechaFin,
           duracionturno: minutosToTime(Number(duracionTurno)),
           diasAtencion: diasSeleccionados,
@@ -162,8 +209,8 @@ export default function NuevaAgendaForm({
                 <Input
                   type="date"
                   value={fechaInicio}
-                  onChange={(e) => setFechaInicio(e.target.value)}
-                  required
+                  onChange={handleInicioChange}
+                  min={fechaHoy}
                 />
               </div>
 
@@ -175,6 +222,7 @@ export default function NuevaAgendaForm({
                   type="date"
                   value={fechaFin}
                   onChange={(e) => setFechaFin(e.target.value)}
+                  min={finMin}
                   required
                 />
               </div>
@@ -243,7 +291,7 @@ export default function NuevaAgendaForm({
 
           <div className="flex justify-center">
             <Button type="submit" disabled={loading}>
-              {loading ? "Guardando..." : "Guardar Agenda"}
+              {guardando ? "Guardando..." : "Guardar Agenda"}
             </Button>
           </div>
 

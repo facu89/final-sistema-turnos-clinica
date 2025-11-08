@@ -21,15 +21,56 @@ export default function EditarAgendaForm({
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [medico, setMedico] = useState<any>(null);
+  const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(true);
   const [exito, setExito] = useState(false);
   const [turnosReasignados, setTurnosReasignados] = useState<number>(0);
   const [guardando, setGuardando] = useState(false);
+  const [finMin, setFinMin] = useState("");
+  const fechaHoy = new Date().toISOString().split("T")[0];
+
+  const calcularFinMin = (fechaStr: string) => {
+    if (!fechaStr) return "";
+    const fecha = new Date(fechaStr);
+    fecha.setDate(fecha.getDate() + 7);
+    return fecha.toISOString().split("T")[0];
+  };
+  
+  const handleInicioChange = (e: any) => {
+    const fecha = e.target.value;
+    setFechaInicio(fecha);
+    setFinMin(calcularFinMin(fecha)); // recalcular min de fin
+  };
+
+  function validarDias(diasAtencion: any[]) {
+    for (let i = 0; i < diasAtencion.length; i++) {
+      const dia = diasAtencion[i];
+      if (dia.activo) {
+        // validar que haya hora de inicio y fin
+        if (!dia.hora_inicio || !dia.hora_fin) {
+          return `Faltan horarios en ${diasSemana[i]}`;
+        }
+  
+        // validar que inicio < fin
+        if (dia.hora_inicio >= dia.hora_fin) {
+          return `El horario de ${diasSemana[i]} no es válido (hora de inicio debe ser menor a la de fin).`;
+        }
+      }
+    }
+    return null; // todo OK
+  }
 
   
   async function handleGuardar(e: React.FormEvent){
     e.preventDefault();
     setGuardando(true);
+
+    const errorHorario = validarDias(diasAtencion);
+    if (errorHorario) {
+      setMensaje(errorHorario);
+      setGuardando(false);
+      return; // detenemos el guardado
+    }
 
     const diasSeleccionados = diasAtencion
     .map((d, index)=>{
@@ -109,8 +150,11 @@ export default function EditarAgendaForm({
           setDuracionTurno(
             parseInt(data.agenda.duracionturno.split(":")[1]) || 30
           );
-          setFechaInicio(data.agenda.fechainiciovigencia.split("T")[0]);
-          setFechaFin(data.agenda.fechafinvigencia.split("T")[0]);
+          const inicio = data.agenda.fechainiciovigencia.split("T")[0];
+          const fin = data.agenda.fechafinvigencia.split("T")[0];
+          setFechaInicio(inicio);
+          setFechaFin(fin);
+          setFinMin(calcularFinMin(inicio));
 
           console.log(data.agenda.dia_semana);
 
@@ -179,17 +223,12 @@ export default function EditarAgendaForm({
                 <label className="block text-sm font-medium mb-1">
                   Duración de cada turno (minutos)
                 </label>
-                <select
+                <Input
                   className="border rounded p-2 w-full"
                   value={duracionTurno}
                   onChange={(e) => setDuracionTurno(Number(e.target.value))}
-                >
-                  <option value={15}>15</option>
-                  <option value={20}>20</option>
-                  <option value={30}>30</option>
-                  <option value={45}>45</option>
-                  <option value={60}>60</option>
-                </select>
+                  disabled
+                />
               </div>
 
               <div>
@@ -199,7 +238,8 @@ export default function EditarAgendaForm({
                 <Input
                   type="date"
                   value={fechaInicio}
-                  onChange={(e) => setFechaInicio(e.target.value)}
+                  onChange={handleInicioChange}
+                  min={fechaHoy}
                 />
               </div>
 
@@ -210,7 +250,8 @@ export default function EditarAgendaForm({
                 <Input
                   type="date"
                   value={fechaFin}
-                  onChange={(e) => setFechaFin(e.target.value)}
+                  onChange={(e)=>setFechaFin(e.target.value)}
+                  min={finMin}
                 />
               </div>
             </CardContent>
@@ -289,6 +330,9 @@ export default function EditarAgendaForm({
           {guardando ? "Guardando..." : "Guardar"}
           </Button>
           </div>
+          {mensaje && (
+            <p className="text-center font-medium text-gray-700">{mensaje}</p>
+          )}
         </form>
       </div>
     </div>
