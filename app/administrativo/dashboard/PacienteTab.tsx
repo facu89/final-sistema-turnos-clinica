@@ -73,8 +73,7 @@ export default function PacienteTab() {
               <TableHead className="text-left">Paciente</TableHead>
               <TableHead className="text-left">Email</TableHead>
               <TableHead className="text-left">Teléfono</TableHead>
-              <TableHead className="text-left">Ausencias</TableHead>
-              <TableHead className="text-left">Acciones</TableHead>
+              <TableHead className="text-left">Historial de ausencias</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -84,13 +83,8 @@ export default function PacienteTab() {
                 <TableCell>{paciente.email}</TableCell>
                 <TableCell>{paciente.telefono}</TableCell>
                 <TableCell>
-                  <Badge variant={paciente.ausencias > 1 ? "destructive" : "secondary"}>
-                    {paciente.ausencias} ausencias
-                  </Badge>
-                </TableCell>
-                <TableCell>
                   <Button
-                    variant="outline"
+                     variant={paciente.ausencias > 1 ? "outline" : "destructive"}
                     size="sm"
                     onClick={() =>
                       (window.location.href = `/administrativo/paciente/${paciente.id}/historial`)
@@ -112,6 +106,9 @@ export default function PacienteTab() {
           </TableBody>
         </Table>
       </div>
+      <Badge>
+        El boton de ver historial de ausencias sera rojo si el paciente no tiene ausencias
+        </Badge>
     </TabsContent>
   );
 }
