@@ -101,7 +101,7 @@ const Modificar = ({ turnoViejo, turnoNuevo, setTurnoAModificar, onClose, onSucc
                          <Button
                               variant="outline"
                               className="w-full"
-  
+                              onClick={() => setTurnoAModificar(null)}
                          >
                               Cancelar
                          </Button>
