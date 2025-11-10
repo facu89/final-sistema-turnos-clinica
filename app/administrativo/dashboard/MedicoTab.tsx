@@ -192,7 +192,6 @@ export default function MedicoTab() {
               <TableHead className="w-[200px]">Nombre Completo</TableHead>
               <TableHead>Especialidades</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead>Turnos</TableHead>
               <TableHead>Agenda</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
@@ -231,21 +230,9 @@ export default function MedicoTab() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      (window.location.href = `../administrativo/medicos/${medico.legajo_medico}/TurnosMedico`)
-                    }
-                    disabled={medico.estado == "inactivo"}
-                  >
-                    Ver Turnos
-                  </Button>
-                </TableCell>
-                <TableCell>
                   {medico?.id_agenda ? (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() =>
                         (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/agenda/modificarAgenda`)
@@ -271,7 +258,7 @@ export default function MedicoTab() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() =>
                         (window.location.href = `/administrativo/medicos/${medico.legajo_medico}/datos/modificarDatos`)
