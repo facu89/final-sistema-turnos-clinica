@@ -140,7 +140,7 @@ export function LoginForm({
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Ingresa tu email para iniciar sesion
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -164,7 +164,7 @@ export function LoginForm({
                     href="/auth/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
-                    Forgot your password?
+                    Olvidaste tu contraseña?
                   </Link>
                 </div>
                 <Input
@@ -181,7 +181,7 @@ export function LoginForm({
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
+              No tenes una cuenta?{" "}
               <Link
                 href="/auth/sign-up"
                 className="underline underline-offset-4"
