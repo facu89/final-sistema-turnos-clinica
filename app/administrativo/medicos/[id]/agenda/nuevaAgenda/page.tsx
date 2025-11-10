@@ -9,6 +9,7 @@ import { HeaderAgenda } from "../HeaderAgenda";
 import { Calendar, Clock } from "lucide-react";
 import { AgendaCreada } from "@/components/agendaCreada";
 import SkeletonAgendaConfig from "@/components/ui/skeletons/skeletonAgenda";
+import { describe } from "node:test";
 
 function minutosToTime(minutos: number) {
   const horas = Math.floor(minutos / 60)
@@ -108,7 +109,7 @@ export default function NuevaAgendaForm({
     if (errorHorario) {
       setGuardando(false);
       setMensaje(errorHorario);
-      return; // detenemos el guardado
+      return;
     }
 
     const diasSeleccionados = diasAtencion
@@ -120,6 +121,35 @@ export default function NuevaAgendaForm({
       .filter((_, i) => diasAtencion[i].activo);
 
     try {
+      const fechaHoy = new Date().toISOString().split("T")[0];
+      const debeNotificar = fechaInicio === fechaHoy;
+
+      console.log(
+        `Fecha de inicio: ${fechaInicio}, Fecha hoy: ${fechaHoy}, Debe notificar: ${debeNotificar}`
+      );
+
+      if (diasSeleccionados.length > 0 && debeNotificar) {
+        console.log(
+          `Enviando notificación con datos: ${medico?.nombre} ${medico?.apellido} ${medico?.especialidad[0]?.descripcion}`
+        );
+
+        await fetch("/api/lista-espera/notificar-creacion-agenda", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            legajo_medico: Number(legajo_medico),
+            nombre: medico?.nombre,
+            apellido: medico?.apellido,
+            id_especialidad: medico?.especialidad[0]?.id_especialidad,
+            descripcion: medico?.especialidad[0]?.descripcion,
+          }),
+        });
+      } else {
+        console.log(
+          "No se envían notificaciones - Agenda no inicia hoy o no hay días seleccionados"
+        );
+      }
+
       const res = await fetch("/api/agenda", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -139,7 +169,7 @@ export default function NuevaAgendaForm({
     } catch (error: any) {
       setMensaje(error.message);
     } finally {
-      setLoading(false);
+      setGuardando(false);
     }
   };
 
