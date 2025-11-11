@@ -6,7 +6,7 @@ import { notificarCambioEstadoTurno } from "@/hooks/obra-social/notifica-pendien
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
+  { auth: { autoRefreshToken: false, persistSession: false } },
 );
 
 type Turno = {
@@ -57,7 +57,7 @@ export async function GET() {
         error: "Error interno del servidor",
         details: error instanceof Error ? error.message : "Error desconocido",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -80,13 +80,13 @@ export async function POST(request: NextRequest) {
     if (!data?.descripcion) {
       return NextResponse.json(
         { error: "La descripción es requerida" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     if (!data?.fecha_vigencia) {
       return NextResponse.json(
         { error: "La fecha de vigencia es requerida" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -124,17 +124,10 @@ export async function POST(request: NextRequest) {
         error: "Error interno del servidor",
         details: error instanceof Error ? error.message : "Error desconocido",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
-/* ==========================================================
-   PUT — Actualiza:
-   - Programación de habilitación (fecha_vigencia)
-   - Cambios de estado (incluye Deshabilitado + efectos)
-   - Edición básica: descripcion/nombre y/o telefono_contacto (independientes)
-   ========================================================== */
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -160,9 +153,15 @@ export async function PUT(request: NextRequest) {
     }
 
     // detectar qué campos vinieron explícitamente
-    const hasDescripcion = Object.prototype.hasOwnProperty.call(body, "descripcion");
-    const hasNombre      = Object.prototype.hasOwnProperty.call(body, "nombre");
-    const hasTelefono    = Object.prototype.hasOwnProperty.call(body, "telefono_contacto");
+    const hasDescripcion = Object.prototype.hasOwnProperty.call(
+      body,
+      "descripcion",
+    );
+    const hasNombre = Object.prototype.hasOwnProperty.call(body, "nombre");
+    const hasTelefono = Object.prototype.hasOwnProperty.call(
+      body,
+      "telefono_contacto",
+    );
 
     const updateData: Record<string, any> = {};
 
@@ -206,7 +205,8 @@ export async function PUT(request: NextRequest) {
                 descripcion: descNotif,
                 nuevoEstado: "Pendiente de pago",
                 fechaHoraTurno: turno.fecha_hora_turno,
-                especialidad: esp.data?.descripcion || "Especialidad no disponible",
+                especialidad: esp.data?.descripcion ||
+                  "Especialidad no disponible",
               });
             } catch (e) {
               console.error("Notificación fallo:", e);
@@ -218,7 +218,6 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // 3) Edición básica — nombre (descripcion/nombre) y/o teléfono (independientes)
     if (hasDescripcion || hasNombre) {
       const nuevoNombre =
         (typeof descripcion === "string" && descripcion.trim()) ||
@@ -244,8 +243,10 @@ export async function PUT(request: NextRequest) {
     // 4) Validar que haya algo para actualizar
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
-        { error: "Enviá al menos un campo para actualizar (nombre o teléfono)." },
-        { status: 400 }
+        {
+          error: "Enviá al menos un campo para actualizar (nombre o teléfono).",
+        },
+        { status: 400 },
       );
     }
 
@@ -265,7 +266,7 @@ export async function PUT(request: NextRequest) {
     console.error("PUT /obraSocial:", error);
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

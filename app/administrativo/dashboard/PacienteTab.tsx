@@ -5,8 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TabsContent } from "@/components/ui/tabs";
 import { useEffect, useMemo, useState } from "react";
-import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 async function getPacientes() {
   try {
@@ -42,11 +49,16 @@ export default function PacienteTab() {
   const pacientes = useMemo(() => {
     if (!search) return allPacientes;
     const q = search.toLowerCase();
-    return allPacientes.filter((p: any) =>
-      (p.nombre || "").toLowerCase().includes(q) ||
-      (p.email || "").toLowerCase().includes(q) ||
-      String(p.dni || "").toLowerCase().includes(q) ||
-      String(p.telefono || "").toLowerCase().includes(q)
+    return allPacientes.filter(
+      (p: any) =>
+        (p.nombre || "").toLowerCase().includes(q) ||
+        (p.email || "").toLowerCase().includes(q) ||
+        String(p.dni || "")
+          .toLowerCase()
+          .includes(q) ||
+        String(p.telefono || "")
+          .toLowerCase()
+          .includes(q)
     );
   }, [search, allPacientes]);
 
@@ -54,7 +66,7 @@ export default function PacienteTab() {
     <TabsContent value="pacientes" className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Gestión de Pacientes</h2>
-        <section className='flex gap-2'>
+        <section className="flex gap-2">
           <Input
             type="text"
             placeholder="Buscar paciente..."
@@ -62,7 +74,6 @@ export default function PacienteTab() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          
         </section>
       </div>
 
@@ -73,7 +84,9 @@ export default function PacienteTab() {
               <TableHead className="text-left">Paciente</TableHead>
               <TableHead className="text-left">Email</TableHead>
               <TableHead className="text-left">Teléfono</TableHead>
-              <TableHead className="text-left">Historial de ausencias</TableHead>
+              <TableHead className="text-left">
+                Historial de ausencias
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -84,8 +97,9 @@ export default function PacienteTab() {
                 <TableCell>{paciente.telefono}</TableCell>
                 <TableCell>
                   <Button
-                     variant={paciente.ausencias > 1 ? "outline" : "destructive"}
+                    variant={paciente.ausencias > 0 ? "default" : "outline"}
                     size="sm"
+                    disabled={!paciente.ausencias || paciente.ausencias === 0}
                     onClick={() =>
                       (window.location.href = `/administrativo/paciente/${paciente.id}/historial`)
                     }
@@ -98,7 +112,10 @@ export default function PacienteTab() {
 
             {pacientes.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="text-center text-sm text-muted-foreground"
+                >
                   No se encontraron pacientes
                 </TableCell>
               </TableRow>
@@ -106,9 +123,6 @@ export default function PacienteTab() {
           </TableBody>
         </Table>
       </div>
-      <Badge>
-        El boton de ver historial de ausencias sera rojo si el paciente no tiene ausencias
-        </Badge>
     </TabsContent>
   );
 }

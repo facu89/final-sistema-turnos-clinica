@@ -16,23 +16,28 @@ import NoMatches from "./NoMatches";
 import { useTurnosLibres } from "@/hooks/turnos/UseTurnosLibres";
 import { useMedico } from "@/hooks/medico/useMedico";
 import { useEspecialidad } from "@/hooks/especialidades/useEspecialidad";
-import type { Especialidad } from "@/types/types";
 
 // es un componente
-function TurnoRow({ turno, onConfirm }: { turno: any; onConfirm: (t: any) => void }) {
-  const { medico } = useMedico(turno.legajo_medico);
-  const { especialidad } = useEspecialidad(turno.id_especialidad);
+function TurnoRow({
+  turno,
+  onConfirm,
+}: {
+  turno: any;
+  onConfirm: (t: any) => void;
+}) {
+  //const { medico } = useMedico(turno.legajo_medico);
+  // const { especialidad } = useEspecialidad(turno.id_especialidad);
 
   return (
     <TableRow key={turno.id}>
       <TableCell>{turno.fecha}</TableCell>
       <TableCell>{turno.hora}</TableCell>
       <TableCell>
-        {medico ? `${medico.nombre} ${medico.apellido}` : "Cargando..."}
+        {turno
+          ? `${turno.nombre_medico} ${turno.apellido_medico}`
+          : "Cargando..."}
       </TableCell>
-      <TableCell>
-        {especialidad ? especialidad.descripcion : "Cargando..."}
-      </TableCell>
+      <TableCell>{turno ? turno.nombre_especialidad : "Cargando..."}</TableCell>
       <TableCell className="text-right">
         <Button size="sm" onClick={() => onConfirm(turno)} variant="default">
           <CheckCircle className="h-4 w-4 mr-1" /> Agendar
@@ -71,12 +76,11 @@ export const TurnosDisponibles = ({
   // Actualizar turnos disponibles cuando cambien los turnos libres
   useEffect(() => {
     if (libres) {
-      setTurnosDisponibles(current => {
+      setTurnosDisponibles((current) => {
         // Filtrar cualquier turno que ya esté en turnosAgendados
-        const turnosNoAgendados = libres.filter(turnoLibre => 
-          !turnosAgendados.some(agendado => 
-            agendado.id === turnoLibre.iso
-          )
+        const turnosNoAgendados = libres.filter(
+          (turnoLibre) =>
+            !turnosAgendados.some((agendado) => agendado.id === turnoLibre.iso)
         );
         return turnosNoAgendados;
       });
@@ -106,27 +110,22 @@ export const TurnosDisponibles = ({
         hora: horaStr,
         legajo_medico: t.legajo_medico,
         id_especialidad: filtroEspecialidad,
+        nombre_medico: t.nombre_medico,
+        apellido_medico: t.apellido_medico,
+        nombre_especialidad: t.nombre_especialidad,
       };
     });
 
-
   //  Estado visual
   if (loading)
-    return <p className="text-muted-foreground">Cargando turnos disponibles..
-    .</p>;
+    return (
+      <p className="text-muted-foreground">Cargando turnos disponibles.. .</p>
+    );
   if (error)
-    return (
-      <p className="text-destructive">
-        Error al cargar turnos: {error}
-      </p>
-    );
+    return <p className="text-destructive">Error al cargar turnos: {error}</p>;
   if (!libres || libres.length === 0)
-    return (
-      <NoMatches filtroEspecialidad={String(filtroEspecialidad)} />
-     
-    );
+    return <NoMatches filtroEspecialidad={String(filtroEspecialidad)} />;
 
-  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Turnos Disponibles</h3>
@@ -143,12 +142,15 @@ export const TurnosDisponibles = ({
           </TableHeader>
           <TableBody>
             {turnosFormateados.slice(0, mostrarCantidad).map((turno) => (
-              <TurnoRow key={turno.id} turno={turno} onConfirm={setTurnoAConfirmar} />
+              <TurnoRow
+                key={turno.id}
+                turno={turno}
+                onConfirm={setTurnoAConfirmar}
+              />
             ))}
           </TableBody>
         </Table>
       </div>
-      {/*  Botón “Ver más” */}
       {turnosFormateados.length > mostrarCantidad && (
         <div className="flex justify-center">
           <Button variant="outline" onClick={mostrarMas}>

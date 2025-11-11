@@ -170,7 +170,7 @@ export const ReporteDemandaMedico = ({
             <Table className="w-full text-sm mt-6">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Especialidad</TableHead>
+                  <TableHead>Medico</TableHead>
                   <TableHead>Turnos</TableHead>
                 </TableRow>
               </TableHeader>
