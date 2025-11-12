@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, CreditCard, User, Lock } from "lucide-react";
+import { Calendar, CreditCard, User, Lock, Check } from "lucide-react";
 
 interface DialogPagoTarjetaProps {
   turno: any;
@@ -23,6 +23,8 @@ export default function DialogPagoTarjeta({
   const [errores, setErrores] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<"ok" | "error" | null>(null);
+  const [progreso, setProgreso] = useState(0);
+  const [animacion, setAnimacion] = useState(false)
 
   const validarCampos = (): boolean => {
     const nuevosErrores: string[] = [];
@@ -66,15 +68,26 @@ export default function DialogPagoTarjeta({
 
     setLoading(true);
     setResultado(null);
+    setAnimacion(true);
+    setProgreso(0);
+
+    let p = 0;
+    const intervalo = setInterval(()=>{
+      p += 5;
+      setProgreso(p);
+      if(p>=100) clearInterval(intervalo);
+    }, 100);
 
     setTimeout(() => {
-      const pagoExitoso = Math.random() < 0.5; // 50% de chance
+      const pagoExitoso = Math.random() < 0.8; // 80% de chance
       setLoading(false);
+      setAnimacion(false);
+
       if (pagoExitoso) {
         setResultado("ok");
         setTimeout(() => {
           onPagoExitoso();
-        }, 1500);
+        }, 600);
       } else {
         setResultado("error");
       }
@@ -174,7 +187,7 @@ export default function DialogPagoTarjeta({
           </ul>
         )}
 
-        {/* Resultado */}
+        {/* Resultado exitoso */}
         {resultado === "ok" && (
           <p className="text-green-600 text-center mb-2 font-medium">
             Pago confirmado con éxito
@@ -188,13 +201,36 @@ export default function DialogPagoTarjeta({
 
         {/* Botones */}
         <div>
+        <div className="relative w-full mb-3">
           <Button
-            className="w-full mb-3"
             onClick={handlePagar}
             disabled={loading}
+            className={`relative w-full overflow-hidden transition-all duration-300 rounded-lg 
+              ${
+                resultado === "ok"
+                  ? "bg-green-500 hover:bg-green-600"
+                  : "bg-primary hover:bg-primary/90"
+              } text-white`}
           >
-            {loading ? "Procesando..." : "Pagar turno"}
+            
+            {loading && (
+              <div
+                className="absolute left-0 top-0 h-full bg-purple-400 transition-all duration-100 ease-linear"
+                style={{ width: `${progreso}%` }}
+              />
+            )}
+
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              {loading && "Procesando..."}
+              {!loading && resultado === "ok" && (
+                <>
+                  <Check className="w-10 h-10" />
+                </>
+              )}
+              {!loading && resultado !== "ok" && "Pagar turno"}
+          </span>
           </Button>
+        </div>
           <Button
             variant="outline"
             className="w-full"

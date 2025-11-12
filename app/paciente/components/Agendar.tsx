@@ -253,8 +253,8 @@ const Agendar = ({
                 }}
                 onCerrar={() => setShowPago(false)}
                 onPagoExitoso={async () => {
-                  setShowPago(false);
                   await pagarYConfirmarTurno();
+                  setShowPago(false);
                 }}
               />
             )}
