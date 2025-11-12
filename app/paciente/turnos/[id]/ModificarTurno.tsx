@@ -27,20 +27,17 @@ export const ModificarTurno = ({
   onSuccess,
 }: ModificarTurnoProps) => {
 
-  const [turnoNuevo, setTurnoNuevo] = useState<any>(null);
-const [turnoViejo,setTurnoViejo]= useState<any>(null);
-  const [showModificar, setShowModificar] = useState(false);
-  //  obtiene los turnos libres del mismo médico y especialidad
-  const turnosParaModificar = useTurnosLibres(
+const [turnoNuevo, setTurnoNuevo] = useState<any>(null);
+const [turnoViejo, setTurnoViejo] = useState<any>(null);
+const [showModificar, setShowModificar] = useState(false);
+
+  //  obtiene los turnos libres del mismo médico y especialidad (hook devuelve { libres, loading, error })
+  const { libres: turnosLibres, loading, error } = useTurnosLibres(
     turnoAModificar?.id_especialidad ?? 0,
     turnoAModificar?.legajo_medico ?? 0
   );
 
-
-
-const turnos: any[] = Array.isArray(turnosParaModificar)
-  ? turnosParaModificar
-  : (turnosParaModificar?.libres ?? []);
+const turnos: any[] = Array.isArray(turnosLibres) ? turnosLibres : (turnosLibres ?? []);
 
 // Por si algún item no trae `iso` y viene con otra key (ej. fecha_hora_turno)
 const getISO = (t: any) =>
@@ -109,9 +106,14 @@ const turnosFormateados = turnos
             </h3>
 
             <div className="space-y-3 max-h-80 overflow-y-auto">
-              {turnosFormateados.length === 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+                  <p className="text-muted-foreground">Cargando turnos...</p>
+                </div>
+              ) : turnosFormateados.length === 0 ? (
                 <p className="text-muted-foreground">
-                  No hay turnos disponibles para este médico y especialidad.
+                  No hay turnos disponibles para este médico.
                 </p>
               ) : (
                 turnosFormateados.map((turno: any) => (
