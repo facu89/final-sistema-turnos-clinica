@@ -81,10 +81,6 @@ export default function EditarAgendaForm({
       if (!diaOriginal) {
         return true;
       }
-      console.log("Hora de inicio del dia nuevo", diaNuevo.hora_inicio);
-      console.log("Hora inicio dia original", diaOriginal.hora_inicio);
-      console.log("Hora de fin del dia nuevo", diaNuevo.hora_fin);
-      console.log("Hora fin dia original", diaOriginal.hora_fin);
 
       if (
         diaNuevo.hora_inicio < diaOriginal.hora_inicio ||
@@ -108,7 +104,7 @@ export default function EditarAgendaForm({
   const notificarTurnosLiberados = async () => {
     try {
       if (!medico?.medico_especialidad[0].especialidad.descripcion) return;
-
+      //reutilizo el notificar-creacion-agenda porque la funcionalidad es la misma
       await fetch("/api/lista-espera/notificar-creacion-agenda", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

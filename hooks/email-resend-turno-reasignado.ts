@@ -2,39 +2,51 @@ const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 //notificacion al paciente para cuando tenga un turno al dia siguiente
 export async function sendAvisoReasignacion({
-    nombre_paciente,
-    apellido_paciente,
-    nombre_medico,
-    especialidad,
-    fecha_turno_nuevo,
-    email_paciente,
+  nombre_paciente,
+  apellido_paciente,
+  nombre_medico,
+  especialidad,
+  fecha_turno_nuevo,
+  email_paciente,
 }: {
-    nombre_paciente: string;
-    apellido_paciente: string;
-    nombre_medico: string;
-    especialidad: string;
-    fecha_turno_nuevo: Date;
-    email_paciente: string;
+  nombre_paciente: string;
+  apellido_paciente: string;
+  nombre_medico: string;
+  especialidad: string;
+  fecha_turno_nuevo: Date;
+  email_paciente: string;
 }) {
-    try {
-        const htmlContent = `
+  try {
+    const fechaFormateada = new Date(fecha_turno_nuevo).toLocaleString(
+      "es-ES",
+      {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      },
+    );
+
+    const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="color: #2563eb; margin: 0;">🏥 Clínica System</h1>
           <p style="color: #64748b; margin: 5px 0;">Sistema de Turnos</p>
         </div>
         <div style="background: #d1fae5; border-left: 4px solid #059669; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-          <h2 style="color: #065f46; margin-top: 0;"> Tu turno fue reasignado!</h2>
+          <h2 style="color: #065f46; margin-top: 0;">Tu turno fue reasignado!</h2>
           <p style="color: #065f46; margin-bottom: 0;">
-            Hola ${nombre_paciente} ${apellido_paciente}, por motivos internos de la clinica, tu turno ha sido reasignado...:
+            Hola ${nombre_paciente} ${apellido_paciente}, por motivos internos de la clínica, tu turno ha sido reasignado:
           </p>
         </div>
         <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin-bottom: 30px;">
-          <h3 style="color: #1e293b; margin-top: 0; margin-bottom: 20px;">📋 Datos del paciente</h3>
+          <h3 style="color: #1e293b; margin-top: 0; margin-bottom: 20px;">📋 Datos del turno reasignado</h3>
           <div style="display: grid; gap: 15px;">
             <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
-              <span style="font-weight: bold; color: #475569;">Nombre del medico:</span>
-              <span style="color: #1e293b;">${nombre_medico} </span>
+              <span style="font-weight: bold; color: #475569;">Nombre del médico:</span>
+              <span style="color: #1e293b;">${nombre_medico}</span>
             </div>
             <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
               <span style="font-weight: bold; color: #475569;">Especialidad:</span>
@@ -42,9 +54,8 @@ export async function sendAvisoReasignacion({
             </div>
             <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
               <span style="font-weight: bold; color: #475569;">Nueva fecha y hora:</span>
-              <span style="color: #1e293b;">${fecha_turno_nuevo}</span>
+              <span style="color: #1e293b;">${fechaFormateada}</span>
             </div>
-        
           </div>
         </div>
         <div style="text-align: center;">
@@ -62,32 +73,32 @@ export async function sendAvisoReasignacion({
       </div>
     `;
 
-        const response = await fetch(BREVO_API_URL, {
-            method: "POST",
-            headers: {
-                "api-key": BREVO_API_KEY!,
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            },
-            body: JSON.stringify({
-                sender: {
-                    name: "Clínica System",
-                    email: "devsistematurnos@gmail.com",
-                },
-                to: [{ email: email_paciente }],
-                subject: `Turno reasignados`,
-                htmlContent,
-            }),
-        });
+    const response = await fetch(BREVO_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY!,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "Clínica System",
+          email: "devsistematurnos@gmail.com",
+        },
+        to: [{ email: email_paciente }],
+        subject: `Turno reasignado`,
+        htmlContent,
+      }),
+    });
 
-        const result = await response.json();
+    const result = await response.json();
 
-        if (!response.ok) {
-            return { success: false, error: result };
-        }
-
-        return { success: true, data: result };
-    } catch (error) {
-        return { success: false, error };
+    if (!response.ok) {
+      return { success: false, error: result };
     }
+
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error };
+  }
 }
