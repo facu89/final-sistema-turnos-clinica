@@ -24,7 +24,6 @@ export default function DialogPagoTarjeta({
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState<"ok" | "error" | null>(null);
   const [progreso, setProgreso] = useState(0);
-  const [animacion, setAnimacion] = useState(false)
 
   const validarCampos = (): boolean => {
     const nuevosErrores: string[] = [];
@@ -68,7 +67,6 @@ export default function DialogPagoTarjeta({
 
     setLoading(true);
     setResultado(null);
-    setAnimacion(true);
     setProgreso(0);
 
     let p = 0;
@@ -81,7 +79,6 @@ export default function DialogPagoTarjeta({
     setTimeout(() => {
       const pagoExitoso = Math.random() < 0.8; // 80% de chance
       setLoading(false);
-      setAnimacion(false);
 
       if (pagoExitoso) {
         setResultado("ok");
@@ -91,7 +88,7 @@ export default function DialogPagoTarjeta({
       } else {
         setResultado("error");
       }
-    }, 1500);
+    }, 2000);
   };
 
   const fechaTurno =
