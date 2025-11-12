@@ -35,7 +35,7 @@ export async function GET() {
     const { data: obrasSociales, error: selectError } = await supabaseAdmin
       .from("obra_social")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("estado", { ascending: false });
 
     if (selectError) {
       console.error("Error en consulta:", selectError);

@@ -78,7 +78,13 @@ export const ObraSocialTab = () => {
       setIsLoading(true);
       setError(null);
       const data = await getObrasSociales();
-      setObras(data || []);
+      const ordenEstados = { Habilitado: 1, Pendiente: 2, Deshabilitado: 3 }
+      const obrasOrdenadas = (data || []).sort((a: any, b: any) => {
+      const ordenA = ordenEstados[a.estado as keyof typeof ordenEstados] || 99;
+      const ordenB = ordenEstados[b.estado as keyof typeof ordenEstados] || 99;
+      return ordenA - ordenB;
+      });
+      setObras(obrasOrdenadas || []);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Error inesperado");
     } finally {
@@ -294,7 +300,7 @@ export const ObraSocialTab = () => {
           </TableHeader>
           <TableBody>
             {obras.map((obra) => (
-              <TableRow key={String(obra.id_obra)}>
+              <TableRow key={String(obra.id_obra)} className={obra.estado == "Deshabilitado" ? "text-gray-500" : ""}>
                 <TableCell>
                   <div>
                     <div className="font-medium">
@@ -326,7 +332,7 @@ export const ObraSocialTab = () => {
                       href={safeTrim(obra.sitio_web)}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-primary underline"
+                      className={obra.estado === "Deshabilitado" ? "text-gray-500" : "text-primary underline"}
                     >
                       {safeTrim(obra.sitio_web)}
                     </a>
@@ -341,7 +347,7 @@ export const ObraSocialTab = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => openEdit(obra)}
-                      disabled={isProcessing}
+                      disabled={isProcessing || obra.estado === "Deshabilitado"}
                     >
                       Modificar
                     </Button>
@@ -367,6 +373,7 @@ export const ObraSocialTab = () => {
                         size="sm"
                         onClick={() => handleHabilitar(obra)}
                         disabled={isProcessing}
+                        className="text-black"
                       >
                         Programar Habilitación
                       </Button>

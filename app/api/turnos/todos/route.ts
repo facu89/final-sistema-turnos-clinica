@@ -32,6 +32,7 @@ export async function GET() {
         especialidad(id_especialidad,descripcion)
       `
       )
+      .neq("estado_turno", "Reasignado")
       .order("fecha_hora_turno", { ascending: true });
 
     if (error) {
