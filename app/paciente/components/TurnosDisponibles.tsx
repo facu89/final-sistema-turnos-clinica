@@ -165,45 +165,60 @@ if (loadingDatos) {
     return <p className="text-center text-gray-500">Cargando médicos y especialidades...</p>;
   }
   
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Turnos Disponibles</h3>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Hora</TableHead>
-              <TableHead>Médico</TableHead>
-              <TableHead>Especialidad</TableHead>
-              <TableHead className="text-right">Acción</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {turnosFormateados.slice(0, mostrarCantidad).map((turno) => (
-              <TurnoRow key={turno.id} turno={turno} onConfirm={setTurnoAConfirmar} especialidades={especialidades} medicos={medicos} />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      {/*  Botón “Ver más” */}
-      {turnosFormateados.length > mostrarCantidad && (
-        <div className="flex justify-center">
-          <Button variant="outline" onClick={mostrarMas}>
-            Ver más turnos
-          </Button>
+return (
+  <>
+    {turnosFormateados.length > 0 ? (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Turnos Disponibles</h3>
+        <div className="rounded-md border p-2">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Hora</TableHead>
+                <TableHead>Médico</TableHead>
+                <TableHead>Especialidad</TableHead>
+                <TableHead className="text-right">Acción</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {turnosFormateados
+                .slice(0, mostrarCantidad)
+                .map((turno) => (
+                  <TurnoRow
+                    key={turno.id}
+                    turno={turno}
+                    onConfirm={setTurnoAConfirmar}
+                    especialidades={especialidades}
+                    medicos={medicos}
+                  />
+                ))}
+            </TableBody>
+          </Table>
         </div>
-      )}
+      </div>
+    ) : (
+      <NoMatches filtroEspecialidad={String(filtroEspecialidad)} />
+    )}
 
-      {/*  Modal de agendado */}
-      {turnoAConfirmar && (
-        <Agendar
-          turnoAConfirmar={turnoAConfirmar}
-          setTurnoAConfirmar={setTurnoAConfirmar}
-          setTurnosAgendados={setTurnosAgendados}
-          setTurnosDisponibles={setTurnosDisponibles}
-        />
-      )}
-    </div>
-  );
-};
+    {/* Botón “Ver más” */}
+    {turnosFormateados.length > mostrarCantidad && (
+      <div className="flex justify-center">
+        <Button variant="outline" onClick={mostrarMas}>
+          Ver más turnos
+        </Button>
+      </div>
+    )}
+
+    {/* Modal de agendado */}
+    {turnoAConfirmar && (
+      <Agendar
+        turnoAConfirmar={turnoAConfirmar}
+        setTurnoAConfirmar={setTurnoAConfirmar}
+        setTurnosAgendados={setTurnosAgendados}
+        setTurnosDisponibles={setTurnosDisponibles}
+      />
+    )}
+  </>
+);
+}
