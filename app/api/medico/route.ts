@@ -8,8 +8,6 @@ const supabase = createClient(
 );
 //devuelve todos los medicos
 export async function GET(request: NextRequest) {
-  console.log("EndPoint llamado");
-  console.log("HOLA LLEGUE AL ENDPOINT DE GET MEDICOS");
   const { data, error } = await supabase.from("medico").select("*");
 
   if (error) {

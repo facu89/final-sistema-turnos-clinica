@@ -17,7 +17,7 @@ interface ObrasSocialesMedicoProps {
 }
 
 const ObrasSocialesMedico = ({ obrasSociales, onObraSocialChange }: ObrasSocialesMedicoProps) => {
-  const [selected, setSelected] = React.useState<string>("particular");
+  const [selected, setSelected] = React.useState<string>("null");
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelected(e.target.value);
@@ -36,13 +36,15 @@ const ObrasSocialesMedico = ({ obrasSociales, onObraSocialChange }: ObrasSociale
         value={selected}
         onChange={handleChange}
       >
-        <option value="null">Particular</option>
         {obrasSociales && obrasSociales.length > 0 ? (
-          obrasSociales.map((obraSocial) => (
-            <option key={obraSocial.id_obra} value={String(obraSocial.id_obra)}>
-              {obraSocial.descripcion}
-            </option>
-          ))
+          <>
+            {obrasSociales.map((obraSocial) => (
+              <option key={obraSocial.id_obra} value={String(obraSocial.id_obra)}>
+                {obraSocial.descripcion}
+              </option>
+            ))}
+            <option value="null">Particular</option>
+          </>
         ) : (
           <option value="null" >Particular</option>
         )}
