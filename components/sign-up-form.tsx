@@ -20,6 +20,73 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const validateName = (name: string): string | null => {
+    if (name.length < 2) {
+      return "El nombre debe tener al menos 2 caracteres";
+    }
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(name)) {
+      return "El nombre solo puede contener letras";
+    }
+    return null;
+  };
+  const validateApellido = (apellido: string): string | null => {
+    if (apellido.length < 2) {
+      return "El apellido debe tener al menos 2 caracteres";
+    }
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(apellido)) {
+      return "El apellido solo puede contener letras";
+    }
+    return null;
+  };
+
+  const validateTelefono = (telefono: string): string | null => {
+    if (!/^\d+$/.test(telefono)) {
+      return "El teléfono solo puede contener números";
+    }
+    if (telefono.length < 6) {
+      return "El teléfono debe tener al menos 6 números";
+    }
+    if (telefono.length > 15) {
+      return "El teléfono no puede tener más de 15 números";
+    }
+    return null;
+  };
+  const validateDNI = (dni: string): string | null => {
+    if (!/^\d+$/.test(dni)) {
+      return "El DNI solo puede contener números";
+    }
+    if (dni.length < 7) {
+      return "El DNI debe tener al menos 7 números";
+    }
+    if (dni.length > 9) {
+      return "El DNI no puede tener más de 9 números";
+    }
+    return null;
+  };
+
+  const validateAge = (fechaNacimiento: string): string | null => {
+    if (!fechaNacimiento) {
+      return "La fecha de nacimiento es requerida";
+    }
+
+    const birthDate = new Date(fechaNacimiento);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    // Ajustar si aún no cumplió años este año
+    const actualAge =
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+        ? age - 1
+        : age;
+
+    if (actualAge < 15) {
+      return "Debes tener al menos 15 años para registrarte";
+    }
+
+    return null;
+  };
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -37,7 +104,37 @@ export function SignUpForm({
     // const supabaseAdmin = createServerClient();
     setIsLoading(true);
     setError(null);
+    const nameError = validateName(name.trim());
+    if (nameError) {
+      setError(nameError);
+      setIsLoading(false);
+      return;
+    }
 
+    const apellidoError = validateApellido(apellido.trim());
+    if (apellidoError) {
+      setError(apellidoError);
+      setIsLoading(false);
+      return;
+    }
+    const telefonoError = validateTelefono(telefono.trim());
+    if (telefonoError) {
+      setError(telefonoError);
+      setIsLoading(false);
+      return;
+    }
+    const dniError = validateDNI(dni.trim());
+    if (dniError) {
+      setError(dniError);
+      setIsLoading(false);
+      return;
+    }
+    const ageError = validateAge(fechaNacimiento);
+    if (ageError) {
+      setError(ageError);
+      setIsLoading(false);
+      return;
+    }
     if (password !== repeatPassword) {
       setError("Passwords do not match");
       setIsLoading(false);

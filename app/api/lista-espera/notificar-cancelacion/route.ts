@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 export async function POST(request: NextRequest) {
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     fecha_hora_turno,
     medico(legajo_medico, nombre, apellido),
     especialidad(id_especialidad, descripcion)
-  `
+  `,
     )
     .eq("cod_turno", cod_turno)
     .single<TurnoData>();
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   if (turnoError || !turnoData?.medico) {
     return NextResponse.json(
       { error: "No se encontraron datos del paciente" },
-      { status: 404 }
+      { status: 404 },
     );
   }
   const nombre = turnoData.medico.nombre;
@@ -82,7 +82,6 @@ export async function POST(request: NextRequest) {
         .from("solicitudes_medico")
         .select(`profiles(email,dni_paciente), patologia(prioridad)`)
         .eq("legajo_medico", legajo_medico)
-        .eq("id_especialidad", id_especialidad)
         .returns<Solicitud[]>();
 
       console.log("lista medico", listaDataMedico);
@@ -95,19 +94,19 @@ export async function POST(request: NextRequest) {
       if (listaErrorMedico || !listaDataMedico) {
         console.error(
           "Error obteniendo lista de espera por médico:",
-          listaErrorMedico
+          listaErrorMedico,
         );
         return;
       }
 
       const alta = listaData.filter(
-        (item) => item.patologia?.prioridad === "Alta"
+        (item) => item.patologia?.prioridad === "Alta",
       );
       const media = listaData.filter(
-        (item) => item.patologia?.prioridad === "Media"
+        (item) => item.patologia?.prioridad === "Media",
       );
       const baja = listaData.filter(
-        (item) => item.patologia?.prioridad === "Baja"
+        (item) => item.patologia?.prioridad === "Baja",
       );
 
       alta.forEach(async (item) => {
@@ -122,7 +121,7 @@ export async function POST(request: NextRequest) {
           });
           console.log(
             "Dni del paciente al que se le va a eliminar la solicirud",
-            item.profiles?.dni_paciente
+            item.profiles?.dni_paciente,
           );
           await supabase
             .from("solicitudes_especialidad")
@@ -148,7 +147,7 @@ export async function POST(request: NextRequest) {
             }
           });
         },
-        60 * 1000 // 1 minuto
+        60 * 1000, // 1 minuto
       );
 
       setTimeout(
@@ -166,18 +165,18 @@ export async function POST(request: NextRequest) {
             }
           });
         },
-        2 * 60 * 1000 // 2 minutos
+        2 * 60 * 1000, // 2 minutos
       );
 
       //ACA FILTRO PARA LAS NOTIFICACIONES DE LA LISTA DE ESPERA PARA UN MEDICO ESPECIFICO
       const altaMedico = listaDataMedico.filter(
-        (item) => item.patologia?.prioridad === "Alta"
+        (item) => item.patologia?.prioridad === "Alta",
       );
       const mediaMedico = listaDataMedico.filter(
-        (item) => item.patologia?.prioridad === "Media"
+        (item) => item.patologia?.prioridad === "Media",
       );
       const bajaMedico = listaDataMedico.filter(
-        (item) => item.patologia?.prioridad === "Baja"
+        (item) => item.patologia?.prioridad === "Baja",
       );
       altaMedico.forEach(async (item) => {
         const email = item.profiles?.email;
@@ -191,15 +190,14 @@ export async function POST(request: NextRequest) {
           });
           console.log(
             "Dni del paciente al que se le va a eliminar la solicitud (por medico)",
-            item?.profiles?.dni_paciente
+            item?.profiles?.dni_paciente,
           );
           // Eliminar solicitud de lista de espera por médico
           await supabase
             .from("solicitudes_medico")
             .delete()
             .eq("legajo_medico", legajo_medico)
-            .eq("dni_paciente", item.profiles?.dni_paciente)
-            .eq("id_especialidad", id_especialidad);
+            .eq("dni_paciente", item.profiles?.dni_paciente);
         }
       });
 
@@ -219,7 +217,7 @@ export async function POST(request: NextRequest) {
             }
           });
         },
-        60 * 1000 // 1 minuto
+        60 * 1000, // 1 minuto
       );
 
       setTimeout(
@@ -237,12 +235,12 @@ export async function POST(request: NextRequest) {
             }
           });
         },
-        2 * 60 * 1000 // 2 minutos
+        2 * 60 * 1000, // 2 minutos
       );
     }, 0);
   } else {
     console.log(
-      "faltan menos de 24 horas para el turno, no se mandan notificaciones"
+      "faltan menos de 24 horas para el turno, no se mandan notificaciones",
     );
   }
 

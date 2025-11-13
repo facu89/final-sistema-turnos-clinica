@@ -70,8 +70,9 @@ export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
       if (!response.ok) throw new Error("Error al obtener turnos");
       const turnos = await response.json();
       const data = Array.isArray(turnos)
-        ? turnos.filter((turno) => turno.estado_turno === "Reservado")
+        ? turnos.filter((turno) => turno.estado_turno !== "Reasignado")
         : [];
+
       //aca filtrar solo los turnos con estado 'Reservado'
       return Array.isArray(data)
         ? data.sort(

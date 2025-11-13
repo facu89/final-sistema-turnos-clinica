@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
                     `profiles(email,dni_paciente), patologia(prioridad)`,
                 )
                 .eq("legajo_medico", legajo_medico)
-                .eq("id_especialidad", id_especialidad)
                 .returns<Solicitud[]>();
 
         console.log("lista medico", listaDataMedico);
@@ -190,8 +189,7 @@ export async function POST(request: NextRequest) {
                         .from("solicitudes_medico")
                         .delete()
                         .eq("legajo_medico", legajo_medico)
-                        .eq("dni_paciente", item.profiles?.dni_paciente)
-                        .eq("id_especialidad", id_especialidad);
+                        .eq("dni_paciente", item.profiles?.dni_paciente);
                 });
             },
             60 * 1000,
@@ -214,8 +212,7 @@ export async function POST(request: NextRequest) {
                         .from("solicitudes_medico")
                         .delete()
                         .eq("legajo_medico", legajo_medico)
-                        .eq("dni_paciente", item.profiles?.dni_paciente)
-                        .eq("id_especialidad", id_especialidad);
+                        .eq("dni_paciente", item.profiles?.dni_paciente);
                 });
             },
             2 * 60 * 1000,
