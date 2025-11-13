@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 //Obtengo todos los turnos de un paciente
@@ -11,12 +11,12 @@ export async function GET(request: NextRequest) {
   const nowIso = new Date().toISOString();
   const { searchParams } = new URL(request.url);
   const dniPaciente = Number(searchParams.get("dni_paciente"));
-  console.log("EndPoint llamado", dniPaciente);
   const { data, error } = await supabase
     .from("turno")
     .select(
       `
       cod_turno,
+      profiles(nombre, apellido, email),
       fecha_hora_turno,
       estado_turno,
       turno_pagado,
@@ -24,13 +24,15 @@ export async function GET(request: NextRequest) {
       id_especialidad,
       dni_paciente,
       legajo_medico,
+      
+      especialidad(descripcion),
       medico:legajo_medico (
         nombre,
         apellido
-      )`
+      )`,
     )
     .eq("dni_paciente", dniPaciente)
-    .gte("fecha_hora_turno", nowIso) 
+    .gte("fecha_hora_turno", nowIso)
     .order("fecha_hora_turno", { ascending: true });
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
@@ -42,7 +44,6 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const data = await request.json();
   const cod_turno = data.cod_turno;
-  console.log("EN API ELIMINAR TURNO CON CODIGO", cod_turno);
   const { error } = await supabase
     .from("turno")
     .delete()

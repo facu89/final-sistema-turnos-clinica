@@ -1,3 +1,4 @@
+import { turnoPaciente } from "@/app/data/Info";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -14,9 +15,20 @@ interface Turno {
   medico?: Medico;
   descripcion?: string;
 }
+interface TurnoViejo {
+  apellido_medico: string;
+  apellido_paciente: string;
+  cod_turno: number;
+  email_paciente: string;
+  fecha: string;
+  id_especialidad: string;
+  legajo_medico: string;
+  nombre_medico: string;
+  nombre_paciente: string;
+}
 
 interface ModificarProps {
-  turnoViejo: Turno;
+  turnoViejo: TurnoViejo;
   turnoNuevo: Turno;
   // accept a generic setter to match different parent setState signatures
   setTurnoAModificar: (turno: any) => void;
@@ -36,31 +48,45 @@ async function modificarTurno(cod_turno: number, nuevaFecha: string) {
   return data;
 }
 
-const Modificar = ({ turnoViejo, turnoNuevo, setTurnoAModificar, onClose, onSuccess }: ModificarProps) => {
+const Modificar = ({
+  turnoViejo,
+  turnoNuevo,
+  setTurnoAModificar,
+  onClose,
+  onSuccess,
+}: ModificarProps) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [modificadoPreviamente, setModificadoPreviamente] = useState(false);
 
-  console.log("turno viejo",turnoViejo,"turno nuevo", turnoNuevo);
-  
   // Safely extract fecha and hora from turnoNuevo
-  const nuevaFecha = turnoNuevo?.fecha?.split("T")[0] || '';
-  const nuevoHorario = turnoNuevo?.fecha?.split("T")[1]?.slice(0, 5) || '';
+  const nuevaFecha = turnoNuevo?.fecha?.split("T")[0] || "";
+  const nuevoHorario = turnoNuevo?.fecha?.split("T")[1]?.slice(0, 5) || "";
 
   const confirmarModificacion = async () => {
     try {
       setLoading(true);
       setErrorMsg(null);
-
+      console.log("turnoViejo", turnoViejo);
       const result = await modificarTurno(
         turnoViejo.cod_turno,
-        turnoNuevo.fecha,
+        turnoNuevo.fecha
       );
-
-      console.log("Turno modificado:", result);
+      //aca poner la logica para notificar a la lsita de espera
+      //reutilizo el notificar cancelacion porque al fin y al cabo es la misma logica
+      await fetch(`/api/lista-espera/notificar-modificacion`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: turnoViejo?.apellido_medico,
+          apellido: turnoViejo?.apellido_medico,
+          legajo_medico: turnoViejo?.apellido_medico,
+          especialidad: turnoViejo?.apellido_medico,
+          id_especialidad: turnoViejo?.apellido_medico,
+        }),
+      });
       setShowSuccess(true);
-      // Notify parent to refresh the list
       try {
         if (onSuccess) await onSuccess();
       } catch (e) {
@@ -77,80 +103,83 @@ const Modificar = ({ turnoViejo, turnoNuevo, setTurnoAModificar, onClose, onSucc
     }
   };
 
-     return (
-          <>{ !showSuccess && !modificadoPreviamente && (
-               <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                         <h3 className="text-xl font-bold mb-4">
-                              Informacion nuevo turno: 
-                         </h3>
-                         <p className="mb-4">
-                              Médico: <b>{turnoNuevo.medico?.nombre} {turnoNuevo.medico?.apellido}</b> <br />
-                              Especialidad: <b>{turnoNuevo.descripcion}</b> <br />
-                              Fecha: <b> {nuevaFecha}
- </b> - Hora:
-                              <b> {nuevoHorario}</b>
-                                            
-                         </p>
-                      
-                              <Button className="w-full mb-2" onClick={confirmarModificacion}>
-                                   Confirmar Turno
-                              </Button>
-                        
+  return (
+    <>
+      {!showSuccess && !modificadoPreviamente && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Informacion nuevo turno:</h3>
+            <p className="mb-4">
+              Médico:{" "}
+              <b>
+                {turnoNuevo.medico?.nombre} {turnoNuevo.medico?.apellido}
+              </b>{" "}
+              <br />
+              Especialidad: <b>{turnoNuevo.descripcion}</b> <br />
+              Fecha: <b> {nuevaFecha}</b> - Hora:
+              <b> {nuevoHorario}</b>
+            </p>
 
-                         <Button
-                              variant="outline"
-                              className="w-full"
-                              onClick={() => setTurnoAModificar(null)}
-                         >
-                              Cancelar
-                         </Button>
-                    
+            <Button className="w-full mb-2" onClick={confirmarModificacion}>
+              Confirmar Turno
+            </Button>
 
-               
-               </div>
-                    </div> )}
-               {/*exito */}
-               {showSuccess && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md text-center">
-      <h3 className="text-lg font-bold mb-2 text-green-600">¡Turno modificado con éxito!</h3>
-      <p className="mb-4">
-        Tu turno fue modificado correctamente. Recibirás una notificación 24 horas antes.
-      </p>
-      <Button
-        onClick={() => {
-          setShowSuccess(false);
-          if (onClose) onClose();
-        }}
-      >
-        Aceptar
-      </Button>
-    </div>
-  </div>
-)}
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setTurnoAModificar(null)}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      )}
+      {/*exito */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md text-center">
+            <h3 className="text-lg font-bold mb-2 text-green-600">
+              ¡Turno modificado con éxito!
+            </h3>
+            <p className="mb-4">
+              Tu turno fue modificado correctamente. Recibirás una notificación
+              24 horas antes.
+            </p>
+            <Button
+              onClick={() => {
+                setShowSuccess(false);
+                if (onClose) onClose();
+              }}
+            >
+              Aceptar
+            </Button>
+          </div>
+        </div>
+      )}
 
-{!showSuccess && modificadoPreviamente && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md text-center">
-      <h3 className="text-lg font-bold mb-2 text-green-600">No se puede reprogramar</h3>
-      <p className="mb-4">
-        Tu turno ya fue modificado una vez, no se puede reprogramar nuevamente.
-      </p>
-      <Button
-        onClick={() => {
-          setShowSuccess(false);
-          if (onClose) onClose();
-        }}
-      >
-        Aceptar
-      </Button>
-    </div>
-  </div>
-)}
-          </>
-     )
-}
-
+      {!showSuccess && modificadoPreviamente && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md text-center">
+            <h3 className="text-lg font-bold mb-2 text-green-600">
+              No se puede reprogramar
+            </h3>
+            <p className="mb-4">
+              Tu turno ya fue modificado una vez, no se puede reprogramar
+              nuevamente.
+            </p>
+            <Button
+              onClick={() => {
+                setShowSuccess(false);
+                if (onClose) onClose();
+              }}
+            >
+              Aceptar
+            </Button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
 export default Modificar;

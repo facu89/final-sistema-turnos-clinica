@@ -72,7 +72,6 @@ export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
       const data = Array.isArray(turnos)
         ? turnos.filter((turno) => turno.estado_turno === "Reservado")
         : [];
-      console.log(data);
       //aca filtrar solo los turnos con estado 'Reservado'
       return Array.isArray(data)
         ? data.sort(

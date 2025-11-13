@@ -6,18 +6,25 @@ import { useTurnosLibres } from "@/hooks/turnos/UseTurnosLibres";
 import Modificar from "../../components/Modifiicar";
 interface TurnoAModificar {
   id_turno: number;
-  medico: {
-     nombre:string,
-     apellido:string
+  profiles: {
+    nombre: string;
+    apellido: string;
+    email: string;
   };
-  especialidad: string;
+  medico: {
+    nombre: string;
+    apellido: string;
+  };
+  especialidad: { descripcion: string };
   id_especialidad: number;
   legajo_medico: number;
 }
 
 interface ModificarTurnoProps {
   turnoAModificar: TurnoAModificar | null;
-  setTurnoAModificar: React.Dispatch<React.SetStateAction<TurnoAModificar | null>>;
+  setTurnoAModificar: React.Dispatch<
+    React.SetStateAction<TurnoAModificar | null>
+  >;
   onSuccess?: () => void | Promise<void>;
 }
 
@@ -26,74 +33,82 @@ export const ModificarTurno = ({
   setTurnoAModificar,
   onSuccess,
 }: ModificarTurnoProps) => {
-
-const [turnoNuevo, setTurnoNuevo] = useState<any>(null);
-const [turnoViejo, setTurnoViejo] = useState<any>(null);
-const [showModificar, setShowModificar] = useState(false);
+  const [turnoNuevo, setTurnoNuevo] = useState<any>(null);
+  const [turnoViejo, setTurnoViejo] = useState<any>(null);
+  const [showModificar, setShowModificar] = useState(false);
 
   //  obtiene los turnos libres del mismo médico y especialidad (hook devuelve { libres, loading, error })
-  const { libres: turnosLibres, loading, error } = useTurnosLibres(
+  const {
+    libres: turnosLibres,
+    loading,
+    error,
+  } = useTurnosLibres(
     turnoAModificar?.id_especialidad ?? 0,
     turnoAModificar?.legajo_medico ?? 0
   );
 
-const turnos: any[] = Array.isArray(turnosLibres) ? turnosLibres : (turnosLibres ?? []);
+  const turnos: any[] = Array.isArray(turnosLibres)
+    ? turnosLibres
+    : (turnosLibres ?? []);
 
-// Por si algún item no trae `iso` y viene con otra key (ej. fecha_hora_turno)
-const getISO = (t: any) =>
-  t?.iso ?? (typeof t === "string" ? t : t?.fecha_hora_turno);
+  // Por si algún item no trae `iso` y viene con otra key (ej. fecha_hora_turno)
+  const getISO = (t: any) =>
+    t?.iso ?? (typeof t === "string" ? t : t?.fecha_hora_turno);
 
-// Filtrar turnos a partir de 24 horas después de la hora actual
-const horaMinima = new Date();
-horaMinima.setHours(horaMinima.getHours() + 24);
+  // Filtrar turnos a partir de 24 horas después de la hora actual
+  const horaMinima = new Date();
+  horaMinima.setHours(horaMinima.getHours() + 24);
 
-// Formateo
-const turnosFormateados = turnos
-  .map((t: any) => {
-    const iso = getISO(t);
-    if (!iso) return null; // saltar items raros
-    const fecha = new Date(iso);
-    if (fecha < horaMinima) return null; // filtrar turnos antes de 24 horas
-    const fechaStr = fecha.toLocaleDateString("es-AR", {
-      weekday: "long",
-      day: "2-digit",
-      month: "2-digit",
-    });
-    const horaStr = fecha.toLocaleTimeString("es-AR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  // Formateo
+  const turnosFormateados = turnos
+    .map((t: any) => {
+      const iso = getISO(t);
+      if (!iso) return null; // saltar items raros
+      const fecha = new Date(iso);
+      if (fecha < horaMinima) return null; // filtrar turnos antes de 24 horas
+      const fechaStr = fecha.toLocaleDateString("es-AR", {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+      });
+      const horaStr = fecha.toLocaleTimeString("es-AR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
-    return {
-      id: iso,
-      fecha: fechaStr,
-      hora: horaStr,
-      legajo_medico: t.legajo_medico ?? turnoAModificar?.legajo_medico,
-      id_especialidad: t.id_especialidad ?? turnoAModificar?.id_especialidad,
-    };
-  })
-  .filter(Boolean) // quitar nulls
-  .sort((a: any, b: any) => (a.id < b.id ? -1 : 1)); // opcional: ordenar
+      return {
+        id: iso,
+        fecha: fechaStr,
+        hora: horaStr,
+        legajo_medico: t.legajo_medico ?? turnoAModificar?.legajo_medico,
+        id_especialidad: t.id_especialidad ?? turnoAModificar?.id_especialidad,
+      };
+    })
+    .filter(Boolean) // quitar nulls
+    .sort((a: any, b: any) => (a.id < b.id ? -1 : 1)); // opcional: ordenar
 
   // Al seleccionar nuevo turno
-  const seleccionarNuevoTurno = (turnoAModificar: any,nuevoTurno: any) => {
+  const seleccionarNuevoTurno = (turnoAModificar: any, nuevoTurno: any) => {
     setTurnoViejo({
       fecha: turnoAModificar.fecha_hora_turno,
       cod_turno: turnoAModificar.cod_turno,
       legajo_medico: turnoAModificar.legajo_medico,
       id_especialidad: turnoAModificar.id_especialidad,
-    
+      nombre_paciente: turnoAModificar.profiles.nombre,
+      apellido_paciente: turnoAModificar.profiles.apellido,
+      email_paciente: turnoAModificar.profiles.email,
+      nombre_medico: turnoAModificar.medico.nombre,
+      apellido_medico: turnoAModificar.medico.apellido,
     });
-     console.log(nuevoTurno);
     setTurnoNuevo({
       fecha: nuevoTurno.id,
       cod_turno: turnoAModificar.cod_turno,
-      medico:turnoAModificar.medico,
-      descripcion:turnoAModificar.especialidad_descripcion
+      medico: turnoAModificar.medico,
+      descripcion: turnoAModificar?.especialidad?.descripcion,
     });
-  // Abrir modal de modificación inmediatamente
-  setShowModificar(true);
-   };
+    // Abrir modal de modificación inmediatamente
+    setShowModificar(true);
+  };
 
   return (
     <>
@@ -101,8 +116,9 @@ const turnosFormateados = turnos
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
             <h3 className="text-xl font-bold mb-4">
-              Selecciona un nuevo turno para {turnoAModificar.medico.nombre}  {turnoAModificar.medico.apellido}  {" "}
-              {turnoAModificar.especialidad}
+              Selecciona un nuevo turno para {turnoAModificar.medico.nombre}{" "}
+              {turnoAModificar.medico.apellido}{" "}
+              {turnoAModificar.especialidad.descripcion}
             </h3>
 
             <div className="space-y-3 max-h-80 overflow-y-auto">
@@ -121,13 +137,20 @@ const turnosFormateados = turnos
                     <CardContent className="p-4 flex items-center justify-between">
                       <div>
                         <p className="font-medium">
-                          {turnoAModificar.medico.nombre}  {turnoAModificar.medico.apellido} - {turnoAModificar.especialidad}
+                          {turnoAModificar.medico.nombre}{" "}
+                          {turnoAModificar.medico.apellido} -{" "}
+                          {turnoAModificar.especialidad.descripcion}
                         </p>
                         <p>
                           {turno.fecha} - {turno.hora}
                         </p>
                       </div>
-                      <Button size="sm" onClick={() => seleccionarNuevoTurno(turnoAModificar,turno)}>
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          seleccionarNuevoTurno(turnoAModificar, turno)
+                        }
+                      >
                         <CheckCircle className="h-4 w-4 mr-1" />
                         Seleccionar
                       </Button>
@@ -153,11 +176,10 @@ const turnosFormateados = turnos
           turnoViejo={turnoViejo}
           turnoNuevo={turnoNuevo}
           setTurnoAModificar={setTurnoAModificar}
-            onClose={() => setShowModificar(false)}
-            onSuccess={onSuccess}
+          onClose={() => setShowModificar(false)}
+          onSuccess={onSuccess}
         />
       )}
-  
     </>
   );
 };
