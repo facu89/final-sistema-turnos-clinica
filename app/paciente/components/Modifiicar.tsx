@@ -22,6 +22,7 @@ interface TurnoViejo {
   email_paciente: string;
   fecha: string;
   id_especialidad: string;
+  especialidad: string;
   legajo_medico: string;
   nombre_medico: string;
   nombre_paciente: string;
@@ -79,11 +80,12 @@ const Modificar = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nombre: turnoViejo?.apellido_medico,
+          nombre: turnoViejo?.nombre_medico,
           apellido: turnoViejo?.apellido_medico,
-          legajo_medico: turnoViejo?.apellido_medico,
-          especialidad: turnoViejo?.apellido_medico,
-          id_especialidad: turnoViejo?.apellido_medico,
+          legajo_medico: turnoViejo?.legajo_medico,
+          fecha_hora_turno: turnoViejo.fecha,
+          especialidad: turnoViejo?.especialidad,
+          id_especialidad: turnoViejo?.id_especialidad,
         }),
       });
       setShowSuccess(true);

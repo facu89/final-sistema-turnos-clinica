@@ -19,8 +19,13 @@ export async function POST(request: NextRequest) {
         id_especialidad,
     } = body;
 
-    //esto es para que chequear que falten mas de 24 horas para el turno
-    //segun los que pusimos en el ers
+    console.log("nombre", nombre);
+    console.log("apellido", apellido);
+    console.log("legajo_medico", legajo_medico);
+    console.log("fecha_hora_turno", fecha_hora_turno);
+    console.log("especialidad", especialidad);
+    console.log("id_especialidad", id_especialidad);
+
     const turnoDate = new Date(fecha_hora_turno);
     const now = new Date();
     const diffMs = turnoDate.getTime() - now.getTime();
@@ -55,7 +60,6 @@ export async function POST(request: NextRequest) {
                         `profiles(email,dni_paciente), patologia(prioridad)`,
                     )
                     .eq("legajo_medico", legajo_medico)
-                    .eq("id_especialidad", id_especialidad)
                     .returns<Solicitud[]>();
 
             console.log("lista medico", listaDataMedico);
@@ -181,8 +185,7 @@ export async function POST(request: NextRequest) {
                         .from("solicitudes_medico")
                         .delete()
                         .eq("legajo_medico", legajo_medico)
-                        .eq("dni_paciente", item.profiles?.dni_paciente)
-                        .eq("id_especialidad", id_especialidad);
+                        .eq("dni_paciente", item.profiles?.dni_paciente);
                 }
             });
 

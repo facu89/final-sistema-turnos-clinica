@@ -94,6 +94,7 @@ export const ModificarTurno = ({
       cod_turno: turnoAModificar.cod_turno,
       legajo_medico: turnoAModificar.legajo_medico,
       id_especialidad: turnoAModificar.id_especialidad,
+      especialidad: turnoAModificar.especialidad.descripcion,
       nombre_paciente: turnoAModificar.profiles.nombre,
       apellido_paciente: turnoAModificar.profiles.apellido,
       email_paciente: turnoAModificar.profiles.email,
