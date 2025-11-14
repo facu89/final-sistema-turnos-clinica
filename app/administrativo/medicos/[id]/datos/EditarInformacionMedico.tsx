@@ -189,6 +189,9 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
         const { prefijo, numeroMat } = parseMatricula(from);
         setTipoMatricula(prefijo);
         setNumeroMatricula(numeroMat);
+        // inicializar la matrícula en datosTemp para que la validación vea el valor
+        const nuevaMat = buildMatricula(prefijo, numeroMat);
+        setDatosTemp((prev) => ({ ...prev, matricula: nuevaMat }));
     }, [datos]);
 
     // Sincronizar matricula completa en datosTemp cuando cambien tipo/numero
@@ -211,23 +214,47 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
     };
     const handleGuardar = async () => {
         try {
-            setDatos (datosTemp);
-            console.log("datosTEMPO:", datosTemp);
-            const guardadoExitoso = await guardarDatosEnBD(datosTemp, legajo_medico);
+            // Consolidamos la versión más reciente de especialidades seleccionadas
+            const datosParaValidar: DatosEditables = {
+                ...datosTemp,
+                especialidades: datosTemp.especialidades && datosTemp.especialidades.length > 0 ? datosTemp.especialidades : especialidadesSeleccionadas,
+                matricula: buildMatricula(tipoMatricula, numeroMatricula),
+            };
+
+            // Validación en cliente: mostrar campos faltantes si corresponde
+            const faltantes = validateDatos(datosParaValidar);
+            if (!String(tipoMatricula || "").trim()) faltantes.push("Tipo de Matrícula");
+            if (!String(numeroMatricula || "").trim()) faltantes.push("Número de Matrícula");
+
+            if (faltantes.length > 0) {
+                setError(`Faltan campos: ${faltantes.join(", ")}`);
+                return;
+            }
+
+            setError(null);
+            setIsLoading(true);
+            // Guardamos la versión consolidada
+            setDatos(datosParaValidar);
+            console.log("🔵 handleGuardar fue ejecutado");
+            console.log("Datos antes de llamar a guardarDatosEnBD:", datosParaValidar);
+            const guardadoExitoso = await guardarDatosEnBD(datosParaValidar, legajo_medico);
+            console.log("Resultado de guardarDatosEnBD:", guardadoExitoso);
+
+            setIsLoading(false);
 
             if (guardadoExitoso) {
                 setEditando(false);
-                if (onGuardar){
-                    onGuardar(datosTemp);
+                if (onGuardar) {
+                    onGuardar(datosParaValidar);
                 }
                 router.push("/administrativo/dashboard?tab=medicos");
-            }
-            else {
+            } else {
                 setDatosTemp(datos);
+                setError("Error guardando en el servidor. Revisá la consola del servidor.");
             }
-        }
-        catch (error) {
-            return false // XDD nose que podria poner aca
+        } catch (error) {
+            setIsLoading(false);
+            setError("Ocurrió un error inesperado.");
         }
     };
 
@@ -284,15 +311,29 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
     const obrasDisponibles = obrasSociales.filter(
         (o) => !convenios.some((c) => c.id_obra === o.id_obra)
     );
+    // Validador que devuelve la lista de campos faltantes (labels)
+    const validateDatos = (d: DatosEditables) => {
+        const faltantes: string[] = [];
+        if (!String(d.nombre ?? "").trim()) faltantes.push("Nombre");
+        if (!String(d.apellido ?? "").trim()) faltantes.push("Apellido");
+        if (!String(d.dni_medico ?? "").trim()) faltantes.push("DNI");
+        if (!String(d.telefono ?? "").trim()) faltantes.push("Teléfono");
+        // Nota: la validación específica de tipo y número de matrícula se hace en el componente
+        // tarifa debe ser número y > 0
+        if (d.tarifa == null || isNaN(Number(d.tarifa)) || Number(d.tarifa) <= 0) {
+            faltantes.push("Tarifa (mayor a 0)");
+        }
+        if (!(Array.isArray(d.especialidades) && d.especialidades.length > 0)) {
+            faltantes.push("Especialidades");
+        }
+        return faltantes;
+    };
 
-    const faltanCampos =
-        !String(datosTemp.nombre ?? "").trim() ||
-        !String(datosTemp.apellido ?? "").trim() ||
-        !String(datosTemp.dni_medico ?? "").trim() ||
-        !String(datosTemp.telefono ?? "").trim() ||
-        !String(datosTemp.matricula ?? "").trim() ||
-        !datosTemp.tarifa ||
-        !(Array.isArray(datosTemp.especialidades) && datosTemp.especialidades.length > 0);
+    const baseMissing = validateDatos(datosTemp);
+    const missingFields = [...baseMissing];
+    if (!String(tipoMatricula || "").trim()) missingFields.push("Tipo de Matrícula");
+    if (!String(numeroMatricula || "").trim()) missingFields.push("Número de Matrícula");
+    const faltanCampos = missingFields.length > 0 || isLoadingEspecialidades;
 
 
     return (
@@ -343,8 +384,12 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                         <Input
                             id="dniMedico"
                             type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={datosTemp.dni_medico}
-                            onChange={(e) => setDatosTemp({...datosTemp, dni_medico: e.target.value,})}
+                            onChange={(e) =>
+                                setDatosTemp({ ...datosTemp, dni_medico: e.target.value.replace(/\D/g, "") })
+                            }
                         />
                     </div>
 
@@ -382,7 +427,10 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                             ) : (
                                 <RadioGroup
                                     value={especialidadesSeleccionadas[0] || ""}
-                                    onValueChange={(val) => setEspecialidadesSeleccionadas([val])}
+                                    onValueChange={(val) => {
+                                        setEspecialidadesSeleccionadas([val]);
+                                        setDatosTemp((prev) => ({ ...prev, especialidades: [val] }));
+                                    }}
                                     className="grid grid-cols-2 gap-3"
                                 >
                                     {especialidades.map((esp) => (
@@ -539,6 +587,13 @@ const modificarDatosMedico: React.FC<EditarInformacionProps> = ({
                         </DialogContent>
                     </Dialog>
 
+
+                    {/* Mensaje de campos faltantes */}
+                    {missingFields.length > 0 && (
+                        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded">
+                        <p className="text-sm">Faltan campos obligatorios: {missingFields.join(", ")}</p>
+                        </div>
+                    )}
 
                     {/* Mensaje de error */}
                     {error && (
