@@ -188,6 +188,7 @@ export async function PUT(request: NextRequest) {
           .from("turno")
           .update({ estado_turno: "Pendiente de pago", turno_pagado: false })
           .eq("id_obra", Number(id))
+          .eq("estado_turno", "Reservado")
           .gt("fecha_hora_turno", hoy); // solo turnos futuros
 
         if (turnosAfectados?.length) {
@@ -202,7 +203,7 @@ export async function PUT(request: NextRequest) {
                 .from("especialidad")
                 .select("descripcion")
                 .eq("id_especialidad", turno.id_especialidad)
-                .single();
+                .maybeSingle();
 
               await notificarCambioEstadoTurno({
                 idTurno: String(turno.cod_turno),
