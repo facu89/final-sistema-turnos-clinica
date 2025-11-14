@@ -92,6 +92,10 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
           return;
         }
 
+        agenda.legajo_medico = legajoMedico;
+        agenda.nombre_medico = jsonAgenda.nombre;
+        agenda.apellido_medico = jsonAgenda.apellido;
+
         const resTurnos = await fetch(
           `/api/turnos/por-medico?legajo_medico=${legajoMedico}`,
           { cache: "no-store" }
