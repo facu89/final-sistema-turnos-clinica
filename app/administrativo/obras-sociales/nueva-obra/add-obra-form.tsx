@@ -34,6 +34,7 @@ export function AddObraForm({
     setError(null);
     setSuccess(false);
 
+    // Validaciones básicas
     if (!nombreObraSocial.trim()) {
       setError("El nombre de la obra social es requerido");
       setIsLoading(false);
@@ -48,16 +49,25 @@ export function AddObraForm({
 
     const fechaSeleccionada = new Date(fechaVigencia);
     const hoy = new Date();
+
+    // Resetear horas para comparar solo fechas
     fechaSeleccionada.setHours(0, 0, 0, 0);
     hoy.setHours(0, 0, 0, 0);
 
     if (fechaSeleccionada < hoy) {
-      setError("La fecha de inicio de vigencia debe ser posterior al dia de hoy");
+      setError("La fecha de vigencia no puede ser anterior a hoy");
       setIsLoading(false);
       return;
     }
 
     try {
+      console.log("Creando obra social:", {
+        nombre: nombreObraSocial,
+        telefono: telefonoContacto,
+        sitio: sitioWeb,
+        fecha: fechaVigencia,
+      });
+
       const response = await fetch("/api/obraSocial", {
         method: "POST",
         headers: {
@@ -74,17 +84,22 @@ export function AddObraForm({
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await response.json();
         throw new Error(errorData.error || "Error al crear la obra social");
       }
 
+      const result = await response.json();
+      console.log("Obra social creada exitosamente:", result);
+
       setSuccess(true);
 
+      // Limpiar formulario
       setNombreObraSocial("");
       setTelefonoContacto("");
       setSitioWeb("");
       setFechaVigencia("");
 
+      // Redirigir después de un momento
       setTimeout(() => {
         router.push("/administrativo/dashboard");
       }, 2000);
@@ -93,7 +108,7 @@ export function AddObraForm({
       setError(
         error instanceof Error
           ? error.message
-          : "Ocurrió un error inesperado al crear la obra social",
+          : "Ocurrió un error inesperado al crear la obra social"
       );
     } finally {
       setIsLoading(false);
@@ -106,6 +121,7 @@ export function AddObraForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      {/* Botón Cancelar */}
       <div className="flex justify-start">
         <Button
           variant="outline"
@@ -127,6 +143,7 @@ export function AddObraForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
+              {/* Nombre de la Obra Social */}
               <div className="grid gap-2">
                 <Label htmlFor="nombreObraSocial">
                   Nombre de la Obra Social *
@@ -141,6 +158,7 @@ export function AddObraForm({
                 />
               </div>
 
+              {/* Teléfono de Contacto */}
               <div className="grid gap-2">
                 <Label htmlFor="telefonoContacto">Teléfono de Contacto</Label>
                 <Input
@@ -152,6 +170,7 @@ export function AddObraForm({
                 />
               </div>
 
+              {/* Sitio Web */}
               <div className="grid gap-2">
                 <Label htmlFor="sitioWeb">Sitio Web</Label>
                 <Input
@@ -163,6 +182,7 @@ export function AddObraForm({
                 />
               </div>
 
+              {/* Fecha de Vigencia */}
               <div className="grid gap-2">
                 <Label htmlFor="fechaVigencia">Fecha de Vigencia *</Label>
                 <Input
@@ -171,19 +191,21 @@ export function AddObraForm({
                   required
                   value={fechaVigencia}
                   onChange={(e) => setFechaVigencia(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
+                  min={new Date().toISOString().split("T")[0]} // No permitir fechas pasadas
                 />
                 <p className="text-xs text-gray-500">
                   Fecha hasta la cual la obra social estará vigente
                 </p>
               </div>
 
+              {/* Mensaje de error */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                   <p className="text-sm">{error}</p>
                 </div>
               )}
 
+              {/* Mensaje de éxito */}
               {success && (
                 <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
                   <p className="text-sm">
@@ -192,6 +214,7 @@ export function AddObraForm({
                 </div>
               )}
 
+              {/* Botones */}
               <div className="flex gap-3">
                 <Button
                   type="button"

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { syncEspecialidades } from "@/lib/medico/helpers";
+import { syncEspecialidadesMedico } from "@/lib/medico/helpers";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,7 +51,11 @@ export async function POST(request: NextRequest) {
 
     // Delegar a helper centralizado
     try {
-      const inserted = await syncEspecialidades(legajo_medico, especialidades);
+      const inserted = await syncEspecialidadesMedico(
+        supabase,
+        legajo_medico,
+        especialidades,
+      );
       return NextResponse.json({ success: true, data: inserted });
     } catch (err: any) {
       return NextResponse.json({ error: err?.message || "Error interno" }, {

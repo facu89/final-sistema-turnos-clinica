@@ -72,7 +72,6 @@ export const ObraSocialTab = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editNombre, setEditNombre] = useState("");
   const [editTelefono, setEditTelefono] = useState("");
-  const [editSitioWeb, setEditSitioWeb] = useState(""); // 👈 NUEVO
 
   const loadObras = async () => {
     try {
@@ -81,8 +80,10 @@ export const ObraSocialTab = () => {
       const data = await getObrasSociales();
       const ordenEstados = { Habilitado: 1, Pendiente: 2, Deshabilitado: 3 };
       const obrasOrdenadas = (data || []).sort((a: any, b: any) => {
-        const ordenA = ordenEstados[a.estado as keyof typeof ordenEstados] || 99;
-        const ordenB = ordenEstados[b.estado as keyof typeof ordenEstados] || 99;
+        const ordenA =
+          ordenEstados[a.estado as keyof typeof ordenEstados] || 99;
+        const ordenB =
+          ordenEstados[b.estado as keyof typeof ordenEstados] || 99;
         return ordenA - ordenB;
       });
       setObras(obrasOrdenadas || []);
@@ -136,6 +137,8 @@ export const ObraSocialTab = () => {
     console.log();
     const fechaSeleccionada = new Date(nuevaFecha).toISOString().slice(0, 10);
     const hoy = new Date().toISOString().slice(0, 10);
+    // fechaSeleccionada.setHours(0, 0, 0, 0);
+    //  hoy.setHours(0, 0, 0, 0);
     console.log("fecha seleccionada por el usuario ", fechaSeleccionada);
 
     if (fechaSeleccionada < hoy) {
@@ -184,21 +187,18 @@ export const ObraSocialTab = () => {
     setSelectedObra(obra);
     setEditNombre(safeTrim(obra.descripcion));
     setEditTelefono(safeTrim(obra.telefono_contacto));
-    setEditSitioWeb(safeTrim(obra.sitio_web)); // 👈 NUEVO
     setShowEditDialog(true);
   };
 
-  // Guardar cambios (nombre, teléfono, sitio web)
+  // Guardar cambios (solo nombre, solo teléfono o ambos)
   const handleSaveEdit = async () => {
     if (!selectedObra) return;
 
     const nombreOriginal = safeTrim(selectedObra.descripcion);
     const telefonoOriginal = safeTrim(selectedObra.telefono_contacto);
-    const sitioOriginal = safeTrim(selectedObra.sitio_web); // 👈 NUEVO
 
     const nombreNuevo = safeTrim(editNombre);
     const telefonoNuevo = safeTrim(editTelefono);
-    const sitioNuevo = safeTrim(editSitioWeb); // 👈 NUEVO
 
     const payload: Record<string, any> = { id: selectedObra.id_obra };
 
@@ -214,15 +214,7 @@ export const ObraSocialTab = () => {
       payload.telefono_contacto = telefonoNuevo === "" ? null : telefonoNuevo;
     }
 
-    if (sitioNuevo !== sitioOriginal) {
-      payload.sitio_web = sitioNuevo === "" ? null : sitioNuevo; // 👈 NUEVO
-    }
-
-    if (
-      !payload.descripcion &&
-      !payload.hasOwnProperty("telefono_contacto") &&
-      !payload.hasOwnProperty("sitio_web") // 👈 también consideramos sitio
-    ) {
+    if (!payload.descripcion && !payload.hasOwnProperty("telefono_contacto")) {
       setError("No hay cambios para guardar.");
       return;
     }
@@ -246,7 +238,7 @@ export const ObraSocialTab = () => {
       setSelectedObra(null);
       setEditNombre("");
       setEditTelefono("");
-      setEditSitioWeb(""); // 👈 limpiar sitio
+
       await loadObras();
     } catch (e: any) {
       setError(e?.message ?? "Error al actualizar");
@@ -312,7 +304,9 @@ export const ObraSocialTab = () => {
             {obras.map((obra) => (
               <TableRow
                 key={String(obra.id_obra)}
-                className={obra.estado == "Deshabilitado" ? "text-gray-500" : ""}
+                className={
+                  obra.estado == "Deshabilitado" ? "text-gray-500" : ""
+                }
               >
                 <TableCell>
                   <div>
@@ -331,8 +325,8 @@ export const ObraSocialTab = () => {
                       obra.estado === "Habilitado"
                         ? "secondary"
                         : obra.estado === "Pendiente"
-                        ? "default"
-                        : "outline"
+                          ? "default"
+                          : "outline"
                     }
                   >
                     {obra.estado}
@@ -461,13 +455,13 @@ export const ObraSocialTab = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de edición (nombre / teléfono / sitio web) */}
+      {/* Diálogo de edición (nombre / teléfono) */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Modificar Obra Social</DialogTitle>
             <DialogDescription>
-              Actualizá el nombre, el teléfono y el sitio web de{" "}
+              Actualizá el nombre y el teléfono de{" "}
               <strong>{safeTrim(selectedObra?.descripcion)}</strong>.
             </DialogDescription>
           </DialogHeader>
@@ -495,19 +489,6 @@ export const ObraSocialTab = () => {
                 Dejá vacío para quitar el teléfono.
               </p>
             </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="edit-sitio">Sitio Web</Label>
-              <Input
-                id="edit-sitio"
-                value={editSitioWeb}
-                onChange={(e) => setEditSitioWeb(e.target.value)}
-                placeholder="https://www.ejemplo.com"
-              />
-              <p className="text-xs text-muted-foreground">
-                Dejá vacío para quitar el sitio web.
-              </p>
-            </div>
           </div>
 
           <DialogFooter>
@@ -518,7 +499,6 @@ export const ObraSocialTab = () => {
                 setSelectedObra(null);
                 setEditNombre("");
                 setEditTelefono("");
-                setEditSitioWeb("");
                 setError(null);
               }}
               disabled={isProcessing}

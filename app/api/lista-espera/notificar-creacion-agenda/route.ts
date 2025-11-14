@@ -166,7 +166,8 @@ export async function POST(request: NextRequest) {
                     .from("solicitudes_medico")
                     .delete()
                     .eq("legajo_medico", legajo_medico)
-                    .eq("dni_paciente", item.profiles?.dni_paciente);
+                    .eq("dni_paciente", item.profiles?.dni_paciente)
+                    .eq("id_especialidad", id_especialidad);
             }
         });
 
