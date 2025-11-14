@@ -128,6 +128,10 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+/* =====================================
+   PUT — Actualizar obra social
+   ===================================== */
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -138,7 +142,8 @@ export async function PUT(request: NextRequest) {
       fecha_vigencia,
       descripcion,
       telefono_contacto,
-      nombre, // alias opcional para "descripcion"
+      nombre,    // alias opcional para "descripcion"
+      sitio_web, // NUEVO: actualizar sitio_web
     } = body as {
       id?: string | number;
       estado?: string;
@@ -146,6 +151,7 @@ export async function PUT(request: NextRequest) {
       descripcion?: string;
       telefono_contacto?: string | null;
       nombre?: string;
+      sitio_web?: string | null;
     };
 
     if (!id) {
@@ -162,27 +168,31 @@ export async function PUT(request: NextRequest) {
       body,
       "telefono_contacto",
     );
+    const hasSitioWeb = Object.prototype.hasOwnProperty.call(
+      body,
+      "sitio_web",
+    );
 
     const updateData: Record<string, any> = {};
 
-    // 1) Programar habilitación (se combina con lo demás)
+    // 1) Programar habilitación
     if (fecha_vigencia) {
       updateData.fecha_cambio_estado = fecha_vigencia;
       updateData.estado = "Pendiente";
     }
 
-    // 2) Cambiar estado (se combina con lo demás)
+    // 2) Cambiar estado
     if (estado) {
       updateData.estado = estado;
 
       if (estado === "Deshabilitado") {
-        const hoy = new Date().toISOString().split("T")[0]; // fecha actual en formato YYYY-MM-DD
-        
+        const hoy = new Date().toISOString().split("T")[0];
+
         const { data: turnosAfectados } = await supabaseAdmin
           .from("turno")
           .select("cod_turno, fecha_hora_turno, id_especialidad")
           .eq("id_obra", Number(id))
-          .gt("fecha_hora_turno", hoy); // solo turnos futuros
+          .gt("fecha_hora_turno", hoy);
 
         await supabaseAdmin
           .from("turno")
@@ -210,8 +220,8 @@ export async function PUT(request: NextRequest) {
                 descripcion: descNotif,
                 nuevoEstado: "Pendiente de pago",
                 fechaHoraTurno: turno.fecha_hora_turno,
-                especialidad: esp.data?.descripcion ||
-                  "Especialidad no disponible",
+                especialidad:
+                  esp.data?.descripcion || "Especialidad no disponible",
               });
             } catch (e) {
               console.error("Notificación fallo:", e);
@@ -223,6 +233,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // 3) Nombre / descripción
     if (hasDescripcion || hasNombre) {
       const nuevoNombre =
         (typeof descripcion === "string" && descripcion.trim()) ||
@@ -232,30 +243,41 @@ export async function PUT(request: NextRequest) {
       if (nuevoNombre !== undefined) updateData.descripcion = nuevoNombre;
     }
 
+    // 4) Teléfono
     if (hasTelefono) {
       if (typeof telefono_contacto === "string") {
         const t = telefono_contacto.trim();
-        updateData.telefono_contacto = t === "" ? null : t; // vacío => borra
+        updateData.telefono_contacto = t === "" ? null : t;
       } else if (telefono_contacto === null) {
         updateData.telefono_contacto = null;
       }
     }
 
-    // DEBUG: ver qué llega y qué vamos a escribir
+    // 5) Sitio web (nuevo)
+    if (hasSitioWeb) {
+      if (typeof sitio_web === "string") {
+        const s = sitio_web.trim();
+        updateData.sitio_web = s === "" ? null : s;
+      } else if (sitio_web === null) {
+        updateData.sitio_web = null;
+      }
+    }
+
     console.log("[PUT /obraSocial] body:", body);
     console.log("[PUT /obraSocial] updateData:", updateData);
 
-    // 4) Validar que haya algo para actualizar
+    // 6) Validar que haya algo para actualizar
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
         {
-          error: "Enviá al menos un campo para actualizar (nombre o teléfono).",
+          error:
+            "Enviá al menos un campo para actualizar (nombre, teléfono o sitio web).",
         },
         { status: 400 },
       );
     }
 
-    // 5) Ejecutar actualización
+    // 7) Ejecutar actualización
     const { error } = await supabaseAdmin
       .from("obra_social")
       .update(updateData)
