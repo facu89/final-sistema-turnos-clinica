@@ -75,6 +75,11 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
           return;
         }
 
+        agenda.legajo_medico = legajoMedico;
+        agenda.nombre_medico = jsonAgenda.nombre;
+        agenda.apellido_medico = jsonAgenda.apellido;
+
+
         // Obtener turnos ocupados de ese médico
         const resTurnos = await fetch(
           `/api/turnos/por-medico?legajo_medico=${legajoMedico}`,
@@ -89,6 +94,8 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
           ? jsonTurnos
           : [];
         console.log("Agenda recibida de la API:", jsonAgenda);
+        console.log("AGENDA:", agenda);
+        console.log("AGENDA LEGAJO:", agenda?.legajo_medico);
         const libresMedico = generarTurnosLibres([agenda], turnosOcupados).map((
           iso,
         ) => ({
@@ -230,13 +237,24 @@ export function generarTurnosLibres(
         const fechaOriginal = t.fecha_hora_turno;
         // Si es string, usar directamente sin conversión
         if (typeof fechaOriginal === "string") {
-          const fechaNormalizada = fechaOriginal.slice(0, 16); // Remover segundos si existen
-          console.log("Procesando turno ocupado:", {
-            original: fechaOriginal,
-            normalizado: fechaNormalizada,
-          });
-          return fechaNormalizada;
-        }
+        const d = new Date(fechaOriginal);
+
+        const fechaStr = d.toLocaleString("es-AR", {
+          timeZone: "America/Argentina/Buenos_Aires",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false
+        });
+
+        const [dia, mes, resto] = fechaStr.split("/");
+        const [anio, hora] = resto.split(",");
+
+        return `${anio.trim()}-${mes}-${dia}T${hora.trim()}`;
+      }
+
 
         // Si es Date, convertir manteniendo zona horaria
         const fecha = new Date(fechaOriginal);

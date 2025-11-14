@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       .from("turno")
       .select("*")
       .eq("legajo_medico", legajo)
-      .in("estado_turno", ["Reservado", "Pendiente de pago", "Reasignado"])
+      .in("estado_turno", ["Reasignado", "Pendiente de pago", "Reservado"])
       .gt("fecha_hora_turno", nowIso)
       .order("fecha_hora_turno", { ascending: true });
 
