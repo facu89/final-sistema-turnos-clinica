@@ -25,12 +25,17 @@ export async function getTurnosAfectados(
     .from("dia_semana")
     .select("dia_semana, hora_inicio, hora_fin")
     .eq("id_agenda", id_agenda);
+
+  // Obtener la fecha actual en formato YYYY-MM-DD
+  const hoy = new Date().toISOString().split("T")[0];
+  console.log("PIBE SOLO SE VAN A REASIGNAR LOS TURNOS A APARTIR DE HOY:", hoy);
   const { data: turnos, error } = await supabase
     .from("turno")
     .select(
       "*, profiles(nombre,apellido,email), medico(nombre, apellido), especialidad(descripcion)",
     )
-    .eq("legajo_medico", legajo_medico);
+    .eq("legajo_medico", legajo_medico)
+    .gte("fecha_hora_turno", hoy);
 
   if (error) throw error;
   if (!turnos) return [];

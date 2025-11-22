@@ -566,7 +566,7 @@ async function nextWorkingDayForDoctor(
       day = addDays(day, 1);
       continue;
     }
-
+    console.log("Agenda de dia:", agenda);
     const ini = dateOnly(new Date(agenda.fechainiciovigencia));
     const fin = dateOnly(new Date(agenda.fechafinvigencia));
     const d = dateOnly(day);

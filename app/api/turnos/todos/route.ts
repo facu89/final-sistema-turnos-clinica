@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 export async function GET() {
@@ -30,7 +30,7 @@ export async function GET() {
           apellido
         ),
         especialidad(id_especialidad,descripcion)
-      `
+      `,
       )
       .neq("estado_turno", "Reasignado")
       .order("fecha_hora_turno", { ascending: true });
@@ -41,7 +41,7 @@ export async function GET() {
     }
 
     if (!data || data.length === 0) {
-      console.log("No se encontraron datos");
+      console.log("No se encontraron datoes");
       return NextResponse.json([]);
     }
 
@@ -92,7 +92,7 @@ export async function GET() {
     console.error("Error en API turnos/todos:", error);
     return NextResponse.json(
       { error: "Error interno del servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

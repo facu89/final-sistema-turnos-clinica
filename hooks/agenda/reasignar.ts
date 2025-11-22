@@ -84,6 +84,7 @@ export async function reasignarTurnos(turnosAfectados: any[], agenda: any) {
   }
 
   if (turnosAfectados.length > 0) {
+    console.log("Eliminando turnos afectados originales:", turnosAfectados);
     const codigoTurno = turnosAfectados.map((t) => t.cod_turno);
     await supabase
       .from("turno")

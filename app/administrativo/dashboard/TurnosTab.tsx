@@ -24,7 +24,7 @@ interface Turno {
   nombre_medico: string;
   apellido_medico: string;
   estado_turno: string;
-  presencia_turno: boolean | null; // 👈 importante
+  presencia_turno: boolean | null;
 }
 
 interface Filters {
@@ -152,19 +152,13 @@ export const TurnosTab = () => {
     }
   };
 
-  // ✅ Alternar presencia y actualizar color + base
-  const marcarPresencia = async (
-    cod_turno: number,
-    actual: boolean | null
-  ) => {
+  const marcarPresencia = async (cod_turno: number, actual: boolean | null) => {
     const nuevoValor = !Boolean(actual); // null/undefined -> false, se invierte a true
 
     // Actualización optimista en el front
     setTurnos((prev) =>
       prev.map((t) =>
-        t.cod_turno === cod_turno
-          ? { ...t, presencia_turno: nuevoValor }
-          : t
+        t.cod_turno === cod_turno ? { ...t, presencia_turno: nuevoValor } : t
       )
     );
 
@@ -187,9 +181,7 @@ export const TurnosTab = () => {
       // Revertir si hay error
       setTurnos((prev) =>
         prev.map((t) =>
-          t.cod_turno === cod_turno
-            ? { ...t, presencia_turno: actual }
-            : t
+          t.cod_turno === cod_turno ? { ...t, presencia_turno: actual } : t
         )
       );
     }
@@ -253,9 +245,7 @@ export const TurnosTab = () => {
               <TableHead>Fecha</TableHead>
               <TableHead>Hora</TableHead>
               <TableHead>Consultar</TableHead>
-              <TableHead className="text-center">
-                Marcar Presencia
-              </TableHead>
+              <TableHead className="text-center">Marcar Presencia</TableHead>
               <TableHead className="text-center">Reasignar</TableHead>
               <TableHead className="text-center">Estado</TableHead>
             </TableRow>
@@ -267,8 +257,7 @@ export const TurnosTab = () => {
                 turno.fecha_hora_turno
               );
               const esReasignado =
-                (turno.estado_turno || "").toLowerCase() ===
-                "reasignado";
+                (turno.estado_turno || "").toLowerCase() === "reasignado";
               const estaSeleccionado = selected.has(turno.cod_turno);
               const esPresente = Boolean(turno.presencia_turno);
 
@@ -306,8 +295,7 @@ export const TurnosTab = () => {
                       variant="outline"
                       size="sm"
                       onClick={() =>
-                        (window.location.href =
-                          `/administrativo/turnos/${turno.cod_turno}`)
+                        (window.location.href = `/administrativo/turnos/${turno.cod_turno}`)
                       }
                     >
                       Ver Detalle
@@ -358,15 +346,15 @@ export const TurnosTab = () => {
                         turno.estado_turno === "Pendiente de pago"
                           ? "bg-orange-50 text-orange-700 border-orange-300"
                           : turno.estado_turno === "Pagado" ||
-                            turno.estado_turno === "Confirmado"
-                          ? "bg-green-50 text-green-700 border-green-300"
-                          : turno.estado_turno === "Cancelado"
-                          ? "bg-red-50 text-red-700 border-red-300"
-                          : turno.estado_turno === "Pendiente"
-                          ? "bg-yellow-50 text-yellow-700 border-yellow-300"
-                          : turno.estado_turno === "Reasignado"
-                          ? "bg-blue-50 text-blue-700 border-blue-300"
-                          : "bg-gray-50 text-gray-700 border-gray-300"
+                              turno.estado_turno === "Confirmado"
+                            ? "bg-green-50 text-green-700 border-green-300"
+                            : turno.estado_turno === "Cancelado"
+                              ? "bg-red-50 text-red-700 border-red-300"
+                              : turno.estado_turno === "Pendiente"
+                                ? "bg-yellow-50 text-yellow-700 border-yellow-300"
+                                : turno.estado_turno === "Reasignado"
+                                  ? "bg-blue-50 text-blue-700 border-blue-300"
+                                  : "bg-gray-50 text-gray-700 border-gray-300"
                       }`}
                     >
                       {turno.estado_turno || "Sin estado"}
