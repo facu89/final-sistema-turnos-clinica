@@ -75,7 +75,7 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
         setError(null);
 
         const resAgenda = await fetch(
-          `/api/agenda?legajo_medico=${legajoMedico}`
+          `/api/agenda?legajo_medico=${legajoMedico}`,
         );
         const jsonAgenda = await resAgenda.json();
 
@@ -98,7 +98,7 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
 
         const resTurnos = await fetch(
           `/api/turnos/por-medico?legajo_medico=${legajoMedico}`,
-          { cache: "no-store" }
+          { cache: "no-store" },
         );
         const jsonTurnos = await resTurnos.json();
 
@@ -109,25 +109,24 @@ export function useTurnosLibres(especialidad: number, legajoMedico?: number) {
         /* ---- MAPEAR CORRECTAMENTE ---- */
         const turnosFiltrados: TurnoBody[] = jsonTurnos.map((t: any) => ({
           legajo_medico: t.legajo_medico,
-          id_especialidad: t.id_especialidad,   
+          id_especialidad: t.id_especialidad,
           fecha_hora_turno: t.fecha_hora_turno,
           estado_turno: t.estado_turno,
         }));
- 
+
         /* ---- FILTRAR SOLO OCUPADOS DE SU ESPECIALIDAD ---- */
-        
 
-
-const libresMedico =
-          generarTurnosLibres([agenda], turnosFiltrados).map((iso) => ({
+        const libresMedico = generarTurnosLibres([agenda], turnosFiltrados).map(
+          (iso) => ({
             iso,
             legajo_medico: agenda.legajo_medico,
             id_especialidad: especialidad,
             nombre_medico: agenda.nombre_medico,
             apellido_medico: agenda.apellido_medico,
             nombre_especialidad: agenda.nombre_especialidad,
-          }))
-        
+          }),
+        );
+
         setLibres(libresMedico);
       } catch (err: any) {
         setError(err.message);
@@ -154,17 +153,21 @@ const libresMedico =
         setError(null);
 
         const resAgendas = await fetch(
-          `/api/agenda/por-especialidad?id_especialidad=${encodeURIComponent(
-            especialidad
-          )}`
+          `/api/agenda/por-especialidad?id_especialidad=${
+            encodeURIComponent(
+              especialidad,
+            )
+          }`,
         );
         const agendasData = await resAgendas.json();
 
         const resTurnos = await fetch(
-          `/api/turnos/por-especialidad?id_especialidad=${encodeURIComponent(
-            especialidad
-          )}`,
-          { cache: "no-store" }
+          `/api/turnos/por-especialidad?id_especialidad=${
+            encodeURIComponent(
+              especialidad,
+            )
+          }`,
+          { cache: "no-store" },
         );
         const jsonTurnos = await resTurnos.json();
 
@@ -202,39 +205,39 @@ const libresMedico =
   return { libres, loading, error };
 }
 
-
 function dateWithTime(base: Date, time: string): Date {
   const [hh, mm, ss = "0"] = time.split(":");
   const d = new Date(base);
-  const dateStr = d.toLocaleDateString("en-US", {
-    timeZone: "America/Argentina/Buenos_Aires",
-  });
-  const newDate = new Date(dateStr);
-  newDate.setHours(Number(hh), Number(mm), Number(ss), 0);
-  return newDate;
+  d.setHours(Number(hh), Number(mm), Number(ss), 0);
+  return d;
 }
 
 export function generarTurnosLibres(
   agendas: Agenda[],
-  turnosOcupados: TurnoBody[]
+  turnosOcupados: TurnoBody[],
 ): string[] {
   const libres: string[] = [];
-  const hoy = new Date();
-  const ayer = new Date();
+  const ahora = new Date();
+  const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
   const limite = new Date();
   limite.setDate(hoy.getDate() + 30);
-  ayer.setDate(hoy.getDate() - 1);
 
   for (const agenda of agendas) {
     if (!agenda || !agenda.dia_semana?.length) continue;
 
-    /* ------- ACA AHORA SÍ APARECEN LOS OCUPADOS ------- */
     const ocupadas = new Set(
-      turnosOcupados.map((t) => normalize(t.fecha_hora_turno))
+      turnosOcupados.map((t) => normalize(t.fecha_hora_turno)),
     );
 
-    const inicioAgenda = new Date(agenda.fechainiciovigencia);
-    const finAgenda = new Date(agenda.fechafinvigencia);
+    const [anioInicio, mesInicio, diaInicio] = agenda.fechainiciovigencia.split(
+      "-",
+    ).map(Number);
+    const [anioFin, mesFin, diaFin] = agenda.fechafinvigencia.split("-").map(
+      Number,
+    );
+
+    const inicioAgenda = new Date(anioInicio, mesInicio - 1, diaInicio);
+    const finAgenda = new Date(anioFin, mesFin - 1, diaFin);
 
     const duracionMin = Number(String(agenda.duracionturno).split(":")[1]) || 0;
     const duracionMs = duracionMin * 60 * 1000;
@@ -253,6 +256,8 @@ export function generarTurnosLibres(
       const start = dateWithTime(fecha, diaActivo.hora_inicio);
       const end = dateWithTime(fecha, diaActivo.hora_fin);
 
+      // Usar formato ISO para evitar problemas de formato de 12/24 horas
+
       for (
         let turno = new Date(start);
         turno < end;
@@ -260,10 +265,21 @@ export function generarTurnosLibres(
       ) {
         const turnoNormalizado = normalize(turno);
 
-        if (turno < ayer) continue;
+        const esHoy = fecha.toDateString() === ahora.toDateString();
+        const yaPaso = turno <= ahora;
+
+        if (esHoy && yaPaso) {
+          continue;
+        }
 
         if (!ocupadas.has(turnoNormalizado)) {
           libres.push(turnoNormalizado);
+        } else {
+          console.log(
+            ` Turno ocupado: ${turno.getHours()}:${
+              turno.getMinutes().toString().padStart(2, "0")
+            }`,
+          );
         }
       }
 

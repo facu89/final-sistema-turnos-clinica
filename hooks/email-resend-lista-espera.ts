@@ -19,7 +19,7 @@ export async function sendTurnoLiberadoNotification({
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #2563eb; margin: 0;">🏥 Clínica System</h1>
+          <h1 style="color: #2563eb; margin: 0;">🏥Turns Med Manager/h1>
           <p style="color: #64748b; margin: 5px 0;">Sistema de Turnos</p>
         </div>
         <div style="background: #e0f2fe; border-left: 4px solid #2563eb; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
@@ -72,7 +72,10 @@ export async function sendTurnoLiberadoNotification({
         Accept: "application/json",
       },
       body: JSON.stringify({
-        sender: { name: "Clínica System", email: "devsistematurnos@gmail.com" },
+        sender: {
+          name: "Turns Med Manager",
+          email: "devsistematurnos@gmail.com",
+        },
         to: [{ email: pacienteEmail }],
         subject: `¡Se ha liberado un turno!`,
         htmlContent,

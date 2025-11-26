@@ -34,14 +34,17 @@ interface Filters {
 }
 
 async function getTurnosPacientes(): Promise<Turno[]> {
-  const response = await fetch("/api/turnos/todos");
+  // Cache busting: agregar timestamp a la URL
+  const timestamp = new Date().getTime();
+  const response = await fetch(`/api/turnos/todos?t=${timestamp}`, {
+    cache: "no-store", // Forzar no usar caché
+    headers: {
+      "Cache-Control": "no-cache",
+    },
+  });
   if (!response.ok) throw new Error("Error al obtener turnos");
   const data: Turno[] = await response.json();
-
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-
-  return data.filter((t) => new Date(t.fecha_hora_turno) >= hoy);
+  return data; // No filtrar aquí, hacerlo en el componente
 }
 
 export const TurnosTab = () => {
@@ -72,7 +75,44 @@ export const TurnosTab = () => {
     try {
       setLoading(true);
       const turnosData = await getTurnosPacientes();
-      setTurnos(turnosData);
+
+      // Filtrar desde hoy en adelante con una fecha más precisa
+      const ahora = new Date();
+      const hoy = new Date(
+        ahora.getFullYear(),
+        ahora.getMonth(),
+        ahora.getDate()
+      );
+
+      const turnosFiltrados = turnosData.filter((turno) => {
+        const fechaTurno = new Date(turno.fecha_hora_turno);
+        return fechaTurno >= hoy;
+      });
+
+      console.log(
+        `🔍 Total turnos API: ${turnosData.length}, Filtrados desde hoy: ${turnosFiltrados.length}`
+      );
+      console.log(
+        `📅 Fecha de hoy para filtro: ${hoy.toISOString().split("T")[0]}`
+      );
+      console.log(
+        `📊 Primeros 3 turnos sin filtrar:`,
+        turnosData.slice(0, 3).map((t) => ({
+          cod: t.cod_turno,
+          fecha: t.fecha_hora_turno,
+          paciente: `${t.nombre_paciente} ${t.apellido_paciente}`,
+        }))
+      );
+      console.log(
+        `✅ Primeros 3 turnos filtrados:`,
+        turnosFiltrados.slice(0, 3).map((t) => ({
+          cod: t.cod_turno,
+          fecha: t.fecha_hora_turno,
+          paciente: `${t.nombre_paciente} ${t.apellido_paciente}`,
+        }))
+      );
+
+      setTurnos(turnosFiltrados);
     } catch (err) {
       console.error("Error cargando turnos:", err);
       setTurnos([]);

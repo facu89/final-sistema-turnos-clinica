@@ -25,7 +25,7 @@ export async function sendTurnoPendientePagoNotification({
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #2563eb; margin: 0;">🏥 Clínica System</h1>
+          <h1 style="color: #2563eb; margin: 0;">🏥 Turns Med Manager</h1>
           <p style="color: #64748b; margin: 5px 0;">Sistema de Turnos</p>
         </div>
         <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
@@ -57,21 +57,21 @@ export async function sendTurnoPendientePagoNotification({
               <span style="color: #1e293b;">${especialidad}</span>
             </div>
             ${
-              obraSocial
-                ? `<div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+      obraSocial
+        ? `<div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
                     <span style="font-weight: bold; color: #475569;">Obra Social:</span>
                     <span style="color: #1e293b;">${obraSocial}</span>
                   </div>`
-                : ""
-            }
+        : ""
+    }
             ${
-              numeroTurno
-                ? `<div style="display: flex; justify-content: space-between; padding: 10px 0;">
+      numeroTurno
+        ? `<div style="display: flex; justify-content: space-between; padding: 10px 0;">
                     <span style="font-weight: bold; color: #475569;">N° Turno:</span>
                     <span style="color: #1e293b;">${numeroTurno}</span>
                   </div>`
-                : ""
-            }
+        : ""
+    }
           </div>
         </div>
         <div style="text-align: center;">
@@ -97,7 +97,10 @@ export async function sendTurnoPendientePagoNotification({
         Accept: "application/json",
       },
       body: JSON.stringify({
-        sender: { name: "Clínica System", email: "devsistematurnos@gmail.com" },
+        sender: {
+          name: "Turns Med Manager",
+          email: "devsistematurnos@gmail.com",
+        },
         to: [{ email: pacienteEmail, name: pacienteNombre }],
         subject: `⏳ Turno Pendiente de Pago - ${fechaTurno}`,
         htmlContent,

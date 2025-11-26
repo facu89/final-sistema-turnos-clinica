@@ -2,22 +2,22 @@ const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
 export async function sendTurnosLiberadosNotification({
-    pacienteEmail,
-    especialidad,
-    nombre,
-    apellido,
+  pacienteEmail,
+  especialidad,
+  nombre,
+  apellido,
 }: {
-    pacienteEmail: string;
-    especialidad: string;
-    nombre: string;
-    apellido: string;
+  pacienteEmail: string;
+  especialidad: string;
+  nombre: string;
+  apellido: string;
 }) {
-    try {
-        console.log("enviando un email a ", pacienteEmail);
-        const htmlContent = `
+  try {
+    console.log("enviando un email a ", pacienteEmail);
+    const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #2563eb; margin: 0;">🏥 Clínica System</h1>
+          <h1 style="color: #2563eb; margin: 0;">🏥Turns Med Manager</h1>
           <p style="color: #64748b; margin: 5px 0;">Sistema de Turnos</p>
         </div>
         <div style="background: #e0f2fe; border-left: 4px solid #2563eb; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
@@ -55,35 +55,35 @@ export async function sendTurnosLiberadosNotification({
       </div>
     `;
 
-        const response = await fetch(BREVO_API_URL, {
-            method: "POST",
-            headers: {
-                "api-key": BREVO_API_KEY!,
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            },
-            body: JSON.stringify({
-                sender: {
-                    name: "Clínica System",
-                    email: "devsistematurnos@gmail.com",
-                },
-                to: [{ email: pacienteEmail }],
-                subject: `¡Se han liberado turnos!`,
-                htmlContent,
-            }),
-        });
+    const response = await fetch(BREVO_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY!,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "Turns Med Manager",
+          email: "devsistematurnos@gmail.com",
+        },
+        to: [{ email: pacienteEmail }],
+        subject: `¡Se han liberado turnos!`,
+        htmlContent,
+      }),
+    });
 
-        const result = await response.json();
+    const result = await response.json();
 
-        if (!response.ok) {
-            console.error("Error enviando email de turno liberado:", result);
-            return { success: false, error: result };
-        }
-
-        console.log("Email de turno liberado enviado exitosamente:", result);
-        return { success: true, data: result };
-    } catch (error) {
-        console.error("Error en sendTurnoLiberadoNotification:", error);
-        return { success: false, error };
+    if (!response.ok) {
+      console.error("Error enviando email de turno liberado:", result);
+      return { success: false, error: result };
     }
+
+    console.log("Email de turno liberado enviado exitosamente:", result);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error("Error en sendTurnoLiberadoNotification:", error);
+    return { success: false, error };
+  }
 }
