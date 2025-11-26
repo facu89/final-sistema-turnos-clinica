@@ -8,7 +8,12 @@ const supabase = createClient(
 
 //Obtengo todos los turnos de un paciente
 export async function GET(request: NextRequest) {
-  const nowIso = new Date().toISOString();
+  const now = new Date();
+  //le resto 3 horas para obtener el horario argentino
+  //porque si no los turnos dentro de 3 horas no se mostraban
+  const nowArgentina = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+  const nowIso = nowArgentina.toISOString();
+
   const { searchParams } = new URL(request.url);
   const dniPaciente = Number(searchParams.get("dni_paciente"));
   const { data, error } = await supabase

@@ -83,34 +83,10 @@ export const TurnosTab = () => {
         ahora.getMonth(),
         ahora.getDate()
       );
-
       const turnosFiltrados = turnosData.filter((turno) => {
         const fechaTurno = new Date(turno.fecha_hora_turno);
         return fechaTurno >= hoy;
       });
-
-      console.log(
-        `🔍 Total turnos API: ${turnosData.length}, Filtrados desde hoy: ${turnosFiltrados.length}`
-      );
-      console.log(
-        `📅 Fecha de hoy para filtro: ${hoy.toISOString().split("T")[0]}`
-      );
-      console.log(
-        `📊 Primeros 3 turnos sin filtrar:`,
-        turnosData.slice(0, 3).map((t) => ({
-          cod: t.cod_turno,
-          fecha: t.fecha_hora_turno,
-          paciente: `${t.nombre_paciente} ${t.apellido_paciente}`,
-        }))
-      );
-      console.log(
-        `✅ Primeros 3 turnos filtrados:`,
-        turnosFiltrados.slice(0, 3).map((t) => ({
-          cod: t.cod_turno,
-          fecha: t.fecha_hora_turno,
-          paciente: `${t.nombre_paciente} ${t.apellido_paciente}`,
-        }))
-      );
 
       setTurnos(turnosFiltrados);
     } catch (err) {
