@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -11,6 +13,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Agendar from "./Agendar";
 import NoMatches from "./NoMatches";
 import { useTurnosLibres } from "@/hooks/turnos/UseTurnosLibres";
@@ -73,14 +82,41 @@ export const TurnosDisponibles = ({
   const [medicos, setMedicos] = useState<Medico[]>([]);
   const [especialidades, setEspecialidades] = useState<any[]>([]);
 
+  const [fechaInicio, setFechaInicio] = useState<string>("");
+  const [fechaFin, setFechaFin] = useState<string>("");
+  const [filtroActivo, setFiltroActivo] = useState<boolean>(false);
+
   // Datos del hook (usa directamente libres, sin duplicar estado)
   const { libres, loading, error } = useTurnosLibres(
     filtroEspecialidad,
     filtroMedico
   );
-console.log("Turnos libres:", turnosDisponibles);
-  //Mostrar “Ver más”
+
+  console.log("Turnos libres:", turnosDisponibles);
+
+  //Mostrar "Ver más"
   const mostrarMas = () => setMostrarCantidad((prev) => prev + 15);
+
+  // Función para limpiar filtros de fecha
+  const limpiarFiltrosFecha = () => {
+    setFechaInicio("");
+    setFechaFin("");
+    setFiltroActivo(false);
+  };
+
+  // Función para aplicar filtros de fecha
+  const aplicarFiltrosFecha = () => {
+    setFiltroActivo(true);
+  };
+
+  // Calcular fechas mínimas y máximas permitidas
+  const fechaMinima = new Date();
+  fechaMinima.setHours(fechaMinima.getHours() + 24); // 24 horas desde ahora
+  const fechaMaxima = new Date();
+  fechaMaxima.setDate(fechaMaxima.getDate() + 90); // 3 meses desde hoy
+
+  const fechaMinimaStr = fechaMinima.toISOString().split("T")[0];
+  const fechaMaximaStr = fechaMaxima.toISOString().split("T")[0];
 
   // buscar en bd
   //  Cargar TODOS los médicos registrados desde la API
@@ -133,7 +169,22 @@ console.log("Turnos libres:", turnosDisponibles);
   horaMinima.setHours(horaMinima.getHours() + 24); // Suma 24 horas a la hora actual
 
   const turnosFormateados = (turnosDisponibles ?? [])
-    .filter((t) => new Date(t.iso) >= horaMinima)
+    .filter((t) => {
+      const fechaTurno = new Date(t.iso);
+
+      // Filtro básico: 24 horas mínimas
+      if (fechaTurno < horaMinima) return false;
+
+      // Filtro de rango de fechas si está activo
+      if (filtroActivo) {
+        const fechaTurnoStr = fechaTurno.toISOString().split("T")[0];
+
+        if (fechaInicio && fechaTurnoStr < fechaInicio) return false;
+        if (fechaFin && fechaTurnoStr > fechaFin) return false;
+      }
+
+      return true;
+    })
     .map((t) => {
       const fecha = new Date(t.iso);
       const fechaStr = fecha.toLocaleDateString("es-AR", {
@@ -173,9 +224,69 @@ console.log("Turnos libres:", turnosDisponibles);
 
   return (
     <>
+      {/* Filtro de fechas */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            Filtrar por fechas
+          </CardTitle>
+          <CardDescription>
+            Seleccione un rango de fechas para filtrar los turnos disponibles.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex-1">
+              <Label htmlFor="fechaInicio">Fecha de inicio</Label>
+              <Input
+                id="fechaInicio"
+                type="date"
+                value={fechaInicio}
+                min={fechaMinimaStr}
+                max={fechaMaximaStr}
+                onChange={(e) => setFechaInicio(e.target.value)}
+              />
+            </div>
+            <div className="flex-1">
+              <Label htmlFor="fechaFin">Fecha de fin</Label>
+              <Input
+                id="fechaFin"
+                type="date"
+                value={fechaFin}
+                min={fechaInicio || fechaMinimaStr}
+                max={fechaMaximaStr}
+                onChange={(e) => setFechaFin(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={aplicarFiltrosFecha}
+                disabled={!fechaInicio && !fechaFin}
+              >
+                Filtrar
+              </Button>
+              <Button
+                variant="outline"
+                onClick={limpiarFiltrosFecha}
+                disabled={!filtroActivo}
+              >
+                Limpiar
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {turnosFormateados.length > 0 ? (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Turnos Disponibles</h3>
+          <h3 className="text-lg font-semibold">
+            Turnos Disponibles{" "}
+            {filtroActivo && (
+              <span className="text-sm font-normal text-muted-foreground">
+                ({turnosFormateados.length} turnos encontrados)
+              </span>
+            )}
+          </h3>
           <div className="rounded-md border p-2">
             <Table>
               <TableHeader>
@@ -205,7 +316,7 @@ console.log("Turnos libres:", turnosDisponibles);
         <NoMatches filtroEspecialidad={String(filtroEspecialidad)} />
       )}
 
-      {/* Botón “Ver más” */}
+      {/* Botón "Ver más" */}
       {turnosFormateados.length > mostrarCantidad && (
         <div className="flex justify-center">
           <Button variant="outline" onClick={mostrarMas}>
