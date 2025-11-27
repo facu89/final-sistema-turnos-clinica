@@ -34,14 +34,21 @@ interface Filters {
 }
 
 async function getTurnosPacientes(): Promise<Turno[]> {
-  // Cache busting: agregar timestamp a la URL
   const timestamp = new Date().getTime();
-  const response = await fetch(`/api/turnos/todos?t=${timestamp}`, {
-    cache: "no-store", // Forzar no usar caché
-    headers: {
-      "Cache-Control": "no-cache",
-    },
-  });
+  const randomId = Math.random().toString(36).substring(7);
+
+  const response = await fetch(
+    `/api/turnos/todos?t=${timestamp}&r=${randomId}`,
+    {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    }
+  );
+
   if (!response.ok) throw new Error("Error al obtener turnos");
   const data: Turno[] = await response.json();
   return data; // No filtrar aquí, hacerlo en el componente

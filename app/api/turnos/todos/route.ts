@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic"; // Fuerza renderizado dinamico
+export const revalidate = 0; // No cachear nunca
+
 // app/api/turnos/todos/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -41,7 +44,7 @@ export async function GET() {
     }
 
     if (!data || data.length === 0) {
-      console.log("No se encontraron datoes");
+      console.log("No se encontraron datos");
       return NextResponse.json([]);
     }
 
@@ -82,12 +85,21 @@ export async function GET() {
         nombre_medico: nombreMedico,
         apellido_medico: apellidoMedico,
         especialidad: turno.especialidad,
-        // 👇 ESTA es la única parte nueva importante
         presencia_turno: turno.presencia_turno ?? false,
       };
     });
 
-    return NextResponse.json(turnosFormateados);
+    const response = NextResponse.json(turnosFormateados);
+
+    // headers para evitar cache
+    response.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+
+    return response;
   } catch (error) {
     console.error("Error en API turnos/todos:", error);
     return NextResponse.json(
