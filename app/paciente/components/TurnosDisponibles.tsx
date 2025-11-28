@@ -38,7 +38,6 @@ function TurnoRow({
   turno: any;
   onConfirm: (t: any) => void;
 }) {
-  console.log(turno);
   const especialidad = especialidades?.find(
     (e) => e.id_especialidad == turno.id_especialidad
   );
@@ -91,8 +90,6 @@ export const TurnosDisponibles = ({
     filtroEspecialidad,
     filtroMedico
   );
-
-  console.log("Turnos libres:", turnosDisponibles);
 
   //Mostrar "Ver más"
   const mostrarMas = () => setMostrarCantidad((prev) => prev + 15);

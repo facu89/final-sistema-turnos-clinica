@@ -67,7 +67,6 @@ const FiltrosBusqueda = () => {
           throw new Error("Error al obtener especialidades");
         }
         const EspecialidadesData: any = await response.json();
-        console.log(EspecialidadesData);
         setEspecialidades(EspecialidadesData.data);
       } catch (error) {
         console.error("Error cargando especialidades:", error);

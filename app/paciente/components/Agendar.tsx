@@ -11,7 +11,7 @@ interface AgendarProps {
   setTurnosDisponibles: React.Dispatch<React.SetStateAction<any[]>>;
 }
 interface TurnoBody {
-  cod_turno?:number
+  cod_turno?: number;
   legajo_medico: number;
   nombre_medico: string;
   dni_paciente: number;
@@ -68,7 +68,6 @@ const Agendar = ({
       });
       if (!res.ok) throw new Error("Error al obtener especialidades");
       const especialidades = await res.json();
-      console.log(especialidades);
       // Buscar la especialidad que coincida con el ID
       const especialidad = especialidades.data.find(
         (esp: any) =>
@@ -118,7 +117,6 @@ const Agendar = ({
       );
       if (!r.ok) return null;
       const j = await r.json();
-      console.log("jota : ", j);
       const raw = j.dni_paciente ?? null;
       if (raw == null) return null;
 
@@ -165,7 +163,9 @@ const Agendar = ({
       ]);
       setTurnosDisponibles((prev) =>
         prev.map((t) =>
-          t.fecha_hora_turno === turnoAConfirmar.fecha_hora_turno ? { ...t, estado: "ocupado" } : t
+          t.fecha_hora_turno === turnoAConfirmar.fecha_hora_turno
+            ? { ...t, estado: "ocupado" }
+            : t
         )
       );
 
@@ -179,38 +179,43 @@ const Agendar = ({
   //busca las obras scoiales del mdico
   const getObrasSociales = async () => {
     if (!turnoAConfirmar.legajo_medico) return;
-      try {
-        const res = await fetch(
-          `/api/medico/medico-obraSocial?legajo_medico=${turnoAConfirmar.legajo_medico}`,
-          {
-            cache: "no-store",
-          }
-        );
-        const json = await res.json();
+    try {
+      const res = await fetch(
+        `/api/medico/medico-obraSocial?legajo_medico=${turnoAConfirmar.legajo_medico}`,
+        {
+          cache: "no-store",
+        }
+      );
+      const json = await res.json();
 
-        const parsed = json.map((item:any)=>({
-          id_obra: item.obra_social?.id_obra,
-          descripcion: item.obra_social?.descripcion,
-          estado: item.obra_social?.estado,
-          telefono_contacto: item.obra_social?.telefono_contacto,
-          sitio_web: item.obra_social?.sitio_web,
-          fecha_alta: item.fecha_alta,
-        }));
+      const parsed = json.map((item: any) => ({
+        id_obra: item.obra_social?.id_obra,
+        descripcion: item.obra_social?.descripcion,
+        estado: item.obra_social?.estado,
+        telefono_contacto: item.obra_social?.telefono_contacto,
+        sitio_web: item.obra_social?.sitio_web,
+        fecha_alta: item.fecha_alta,
+      }));
 
-        if (!res.ok) throw new Error(json.error || "Error al obtener obras sociales");
-        setObrasSociales(parsed);
-      } catch (err: any) {
-        setObrasSociales([]);
-      }
+      console.log("Parsed", parsed);
+      const obrasSociales = parsed.filter(
+        (obra: any) => obra.estado == "Habilitado"
+      );
+      console.log("parsed despues de filtrar", obrasSociales);
+      if (!res.ok)
+        throw new Error(json.error || "Error al obtener obras sociales");
+      setObrasSociales(obrasSociales);
+    } catch (err: any) {
+      setObrasSociales([]);
+    }
   };
 
   //Busca las obras sociales
-  React.useEffect(()=>{
-    if(turnoAConfirmar?.legajo_medico){
+  React.useEffect(() => {
+    if (turnoAConfirmar?.legajo_medico) {
       getObrasSociales();
     }
   }, [turnoAConfirmar?.legajo_medico]);
-
 
   return (
     <>
@@ -234,17 +239,17 @@ const Agendar = ({
 
             {/* aparece pagar solo si eligio particular */}
             {selectedObraSocial === "null" ? (
-              <Button className="w-full mb-2" onClick={()=>setShowPago(true)}>
-              Confirmar turno
+              <Button className="w-full mb-2" onClick={() => setShowPago(true)}>
+                Confirmar turno
               </Button>
             ) : (
               <Button className="w-full mb-2" onClick={pagarYConfirmarTurno}>
-              Confirmar turno
+                Confirmar turno
               </Button>
             )}
 
             {showPago && (
-            <DialogPagoTarjeta
+              <DialogPagoTarjeta
                 turno={{
                   ...turnoAConfirmar,
                   nombre_medico: medicoNombre,
@@ -301,9 +306,9 @@ const Agendar = ({
             <Button
               onClick={() => {
                 setShowSuccess(false);
-                setTurnosAgendados(prev => [...prev, turnoAConfirmar]);
-                setTurnosDisponibles(prev => 
-                  prev.filter(t => t.iso !== turnoAConfirmar.id)
+                setTurnosAgendados((prev) => [...prev, turnoAConfirmar]);
+                setTurnosDisponibles((prev) =>
+                  prev.filter((t) => t.iso !== turnoAConfirmar.id)
                 );
                 setTurnoAConfirmar(null);
               }}

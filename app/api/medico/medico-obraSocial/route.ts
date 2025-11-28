@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic"; // Fuerza renderizado dinamico
+export const revalidate = 0; // No cachear nunca
+
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,7 +10,7 @@ export async function GET(request: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: { autoRefreshToken: false, persistSession: false },
-    }
+    },
   );
 
   const { searchParams } = new URL(request.url);
@@ -31,7 +34,7 @@ export async function GET(request: NextRequest) {
       )
     `)
     .eq("legajo_medico", legajo_medico);
-
+  console.log("data obtenida de supa:", data);
   if (error) {
     console.error("Error Supabase:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });

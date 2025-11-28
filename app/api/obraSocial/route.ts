@@ -142,7 +142,7 @@ export async function PUT(request: NextRequest) {
       fecha_vigencia,
       descripcion,
       telefono_contacto,
-      nombre,    // alias opcional para "descripcion"
+      nombre, // alias opcional para "descripcion"
       sitio_web, // NUEVO: actualizar sitio_web
     } = body as {
       id?: string | number;
@@ -192,6 +192,7 @@ export async function PUT(request: NextRequest) {
           .from("turno")
           .select("cod_turno, fecha_hora_turno, id_especialidad")
           .eq("id_obra", Number(id))
+          .eq("estado_turno", "Reservado")
           .gt("fecha_hora_turno", hoy);
 
         await supabaseAdmin
@@ -220,8 +221,8 @@ export async function PUT(request: NextRequest) {
                 descripcion: descNotif,
                 nuevoEstado: "Pendiente de pago",
                 fechaHoraTurno: turno.fecha_hora_turno,
-                especialidad:
-                  esp.data?.descripcion || "Especialidad no disponible",
+                especialidad: esp.data?.descripcion ||
+                  "Especialidad no disponible",
               });
             } catch (e) {
               console.error("Notificación fallo:", e);
