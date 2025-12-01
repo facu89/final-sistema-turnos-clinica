@@ -107,7 +107,11 @@ export const ListarTurnosAgendados = ({ dni_paciente, onTurnoChanged }: any) => 
       <ModificarTurno
         turnoAModificar={turnoAModificar}
         setTurnoAModificar={setTurnoAModificar}
-        onSuccess={refreshTurnos}
+        onSuccess={async () => {
+          await refreshTurnos();
+          // notify parent/page-level refresh if provided
+          onTurnoChanged && onTurnoChanged();
+        }}
       />
     );
   }
