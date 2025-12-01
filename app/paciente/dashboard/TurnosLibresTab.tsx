@@ -4,7 +4,7 @@ import { useState } from "react";
 import {  TabsContent } from "@/components/ui/tabs";
 import FiltrosBusqueda from "../components/FiltrosBusqueda";
 
-export const TurnosLibres = () => {
+export const TurnosLibres = ({ onTurnoChanged }: { onTurnoChanged?: () => void }) => {
   const [activeTab, setActiveTab] = useState("mis-turnos");
 
   return (
@@ -12,7 +12,7 @@ export const TurnosLibres = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Agendar un turno nuevo.</h2>
       </div>
-      <FiltrosBusqueda></FiltrosBusqueda>
+      <FiltrosBusqueda onTurnoChanged={onTurnoChanged}></FiltrosBusqueda>
     </TabsContent>
   );
 };

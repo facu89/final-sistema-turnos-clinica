@@ -66,11 +66,13 @@ function TurnoRow({
 interface TurnosDisponiblesProps {
   filtroEspecialidad: number;
   filtroMedico?: number;
+  onTurnoChanged?: () => void;
 }
 
 export const TurnosDisponibles = ({
   filtroEspecialidad,
   filtroMedico,
+  onTurnoChanged,
 }: TurnosDisponiblesProps) => {
   //  Estado del componente
   const [loadingDatos, setLoadingDatos] = useState(true);
@@ -323,14 +325,15 @@ export const TurnosDisponibles = ({
       )}
 
       {/* Modal de agendado */}
-      {turnoAConfirmar && (
-        <Agendar
-          turnoAConfirmar={turnoAConfirmar}
-          setTurnoAConfirmar={setTurnoAConfirmar}
-          setTurnosAgendados={setTurnosAgendados}
-          setTurnosDisponibles={setTurnosDisponibles}
-        />
-      )}
+          {turnoAConfirmar && (
+            <Agendar
+              turnoAConfirmar={turnoAConfirmar}
+              setTurnoAConfirmar={setTurnoAConfirmar}
+              setTurnosAgendados={setTurnosAgendados}
+              setTurnosDisponibles={setTurnosDisponibles}
+              onTurnoChanged={onTurnoChanged}
+            />
+          )}
     </>
   );
 };

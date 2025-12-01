@@ -9,6 +9,7 @@ interface AgendarProps {
   setTurnoAConfirmar: React.Dispatch<React.SetStateAction<any>>;
   setTurnosAgendados: React.Dispatch<React.SetStateAction<any[]>>;
   setTurnosDisponibles: React.Dispatch<React.SetStateAction<any[]>>;
+  onTurnoChanged?: () => void;
 }
 interface TurnoBody {
   cod_turno?: number;
@@ -50,6 +51,7 @@ const Agendar = ({
   setTurnoAConfirmar,
   setTurnosAgendados,
   setTurnosDisponibles,
+  onTurnoChanged,
 }: AgendarProps) => {
   const [obrasSociales, setObrasSociales] = useState<ObraSocial[]>([]);
   const [selectedObraSocial, setSelectedObraSocial] = useState<string>("null");
@@ -311,6 +313,8 @@ const Agendar = ({
                   prev.filter((t) => t.iso !== turnoAConfirmar.id)
                 );
                 setTurnoAConfirmar(null);
+                // Notify parent/page to refresh stats
+                onTurnoChanged && onTurnoChanged();
               }}
             >
               Aceptar

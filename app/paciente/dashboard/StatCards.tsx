@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import {Card,CardContent,} from "@/components/ui/card";
 import {Calendar,Clock,} from "lucide-react";
+import * as SliderPrimitive from '@radix-ui/react-slider';
 
 async function getTurnosPaciente(dniPaciente: any) {
   try {
@@ -16,24 +17,42 @@ async function getTurnosPaciente(dniPaciente: any) {
   }
 }
 
-export const StatCards = ({dni_paciente} :any) => {
+export const StatCards = ({dni_paciente, refreshKey} :any) => {
   const [turnos, setTurnos] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
   useEffect(() => {
     const loadTurnos = async () => {
       setIsLoading(true);
       if (dni_paciente) {
         const data = await getTurnosPaciente(dni_paciente);
         setTurnos(data);
-      }
-      setIsLoading(false);
-    };
-    loadTurnos();
-  }, [dni_paciente]);
- 
-  const turno = turnos[0]; // el turno más próximo (ya ordenado por fecha) //aca deberia evaluar que sea mayor o igual a la fecha actual
-  const ahora= Date.now();
+     }
+     setIsLoading(false);
+};
+          loadTurnos();
+     }, [dni_paciente, refreshKey]);
+
+const turnosMes=()=>{
+     return turnos.filter((t: any) => {
+          const fecha = new Date(t.fecha_hora_turno);
+          const ahora = new Date();
+          return (
+               fecha.getMonth() === ahora.getMonth() &&
+               fecha.getFullYear() === ahora.getFullYear()
+          );
+     }).length;
+}
+  const turno = turnos[0]; // el turno más próximo (ya ordenado por fecha)
+  const ahora = new Date();
+  const fechaDDMMYY = turno?.fecha_hora_turno
+  ? (() => {
+      const [y, m, d] = turno.fecha_hora_turno.split("T")[0].split("-");
+      return `${d}/${m}/${y.slice(2)}`;
+    })()
+  : "";
+
+
+     const hora = turno?.fecha_hora_turno.split("T")[1]?.split(".")[0].slice(0, 5) || "";
   return (
          <>
           <div className="grid grid-cols-2 gap-6 mb-8">
@@ -44,14 +63,11 @@ export const StatCards = ({dni_paciente} :any) => {
                     <p className="text-sm font-medium text-muted-foreground">
                          Próximo Turno
                     </p>
-                    {isLoading ? (
-                         <p className="text-lg">Cargando...</p>
-                    ) : turno && (turno >= ahora) ? (
+                    { turno && new Date(turno.fecha_hora_turno) > ahora ? (
                          <>
                          <p className="text-lg font-bold">Tu proximo turno es el</p>
                          <p className="text-lg font-bold">
-                         {turno.fecha} </p>
-                         <p className="text-lg font-bold"> {turno.hora}< span> hs </span> </p>
+                         {fechaDDMMYY} a las {hora}< span> hs </span> </p>
                          
                     <p className="text-sm text-muted-foreground"> 
                     con {turno.medico
@@ -77,14 +93,7 @@ export const StatCards = ({dni_paciente} :any) => {
                     <p className="text-2xl font-bold">
                          {isLoading ? (
                               "..."
-                         ) : turnos.filter((t: any) => {
-                              const fecha = new Date(t.fecha);
-                              const ahora = new Date();
-                              return (
-                                   fecha.getMonth() === ahora.getMonth() &&
-                                   fecha.getFullYear() === ahora.getFullYear()
-                              );
-                         }).length}</p>
+                         ) : turnosMes() }</p>
                     </div>
                     <Clock className="h-8 w-8 text-secondary" />
                </div>

@@ -21,6 +21,7 @@ export default function PacienteDashboard() {
   const [mostrarResultados, setMostrarResultados] = useState(false);
        const [showMissingDni, setShowMissingDni] = useState(false);
   const [dniPaciente, setDniPaciente] = useState<number | null>(null);
+  const [statsRefreshKey, setStatsRefreshKey] = useState(0);
   const medicos = medico;
   // Estado para los turnos agendados
   const [turnos, setTurnos] = useState(turnosAgendados); //mock data
@@ -61,14 +62,17 @@ export default function PacienteDashboard() {
     fetchPaciente();
   }, [userId]);
 
+  // Handler to trigger children to refresh stats when a turno is added/cancelled
+  const refreshStats = () => setStatsRefreshKey((k) => k + 1);
+
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <HeaderPaciente dni={dniPaciente}></HeaderPaciente>
       <div className="container mx-auto px-4 py-6">
-       {/* { dniPaciente!=null && 
-       <StatCards dni_paciente={dniPaciente}></StatCards>} */}
+      { dniPaciente!=null && 
+      <StatCards dni_paciente={dniPaciente} refreshKey={statsRefreshKey}></StatCards>} 
         {/* Main Content */}
         <Tabs
           value={activeTab}
@@ -82,8 +86,8 @@ export default function PacienteDashboard() {
           </TabsList>
 
           {dniPaciente!=null &&  
-          <TurnosTabPac dni_paciente={dniPaciente}></TurnosTabPac>}
-          <TurnosLibres></TurnosLibres>
+          <TurnosTabPac dni_paciente={dniPaciente} onTurnoChanged={refreshStats}></TurnosTabPac>}
+          <TurnosLibres onTurnoChanged={refreshStats}></TurnosLibres>
           <PerfilTab></PerfilTab>
         </Tabs>
       </div>

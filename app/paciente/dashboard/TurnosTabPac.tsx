@@ -3,7 +3,7 @@ import { ListarTurnosAgendados } from "../turnos/[id]/ListarTurnosAgendados";
 import { TabsContent } from "@/components/ui/tabs";
 
 
-export const TurnosTabPac = ({ dni_paciente }:any) => {
+export const TurnosTabPac = ({ dni_paciente, onTurnoChanged }:any) => {
 
      return (
           <div>
@@ -13,7 +13,7 @@ export const TurnosTabPac = ({ dni_paciente }:any) => {
                          
                     </div>
 
-                    <ListarTurnosAgendados dni_paciente={dni_paciente}></ListarTurnosAgendados>
+                    <ListarTurnosAgendados dni_paciente={dni_paciente} onTurnoChanged={onTurnoChanged}></ListarTurnosAgendados>
 
                </TabsContent>
 

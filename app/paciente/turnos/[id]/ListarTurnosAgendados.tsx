@@ -14,7 +14,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
-export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
+export const ListarTurnosAgendados = ({ dni_paciente, onTurnoChanged }: any) => {
   const [turnosAgendados, setTurnosAgendados] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -52,6 +52,8 @@ export const ListarTurnosAgendados = ({ dni_paciente }: any) => {
       if (!response.ok) throw new Error("Error al cancelar turno");
       // Refresh the appointments list
       await refreshTurnos();
+        // Notify parent/page to refresh stats
+        onTurnoChanged && onTurnoChanged();
       setDialogOpen(false);
       setTurnoACancelar(null);
     } catch (error) {

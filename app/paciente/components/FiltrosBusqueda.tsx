@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { TurnosDisponibles } from "./TurnosDisponibles";
 import { json } from "stream/consumers";
 import { filtrarMedicosPorEspecialidad } from "@/hooks/medico/filtrarMedicos";
-const FiltrosBusqueda = () => {
+const FiltrosBusqueda = ({ onTurnoChanged }: { onTurnoChanged?: () => void } = {}) => {
   const [filtroMedico, setFiltroMedico] = useState("");
   const [filtroEspecialidad, setFiltroEspecialidad] = useState("");
   const [mostrarResultados, setMostrarResultados] = useState(false);
@@ -166,6 +166,7 @@ const FiltrosBusqueda = () => {
         <TurnosDisponibles
           filtroEspecialidad={Number(filtroEspecialidad)}
           filtroMedico={Number(filtroMedico)}
+          onTurnoChanged={onTurnoChanged}
         ></TurnosDisponibles>
       )}
     </>
