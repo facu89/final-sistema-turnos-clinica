@@ -113,11 +113,26 @@ const Agendar = ({
   // Getter: obtiene el dni del paciente asociado al userId (desde /api/paciente)
   const getDniPaciente = async (): Promise<number | null> => {
     try {
+      // Esperar brevemente a que useAuth inicialice userId (útil en prod donde tarda más)
+      if (!userId) {
+        for (let i = 0; i < 8 && !userId; i++) {
+          // esperar 300ms x 8 = 2.4s máximo
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise((r) => setTimeout(r, 300));
+        }
+      }
+
+      console.log("getDniPaciente - userId:", userId);
       if (!userId) return null;
+
       const r = await fetch(
-        `/api/dniPaciente?id_paciente=${encodeURIComponent(userId)}`
+        `/api/dniPaciente?id_paciente=${encodeURIComponent(userId)}`,
+        { cache: "no-store", credentials: "include" }
       );
-      if (!r.ok) return null;
+      if (!r.ok) {
+        console.warn("getDniPaciente - respuesta no OK:", r.status);
+        return null;
+      }
       const j = await r.json();
       const raw = j.dni_paciente ?? null;
       if (raw == null) return null;
@@ -151,6 +166,7 @@ const Agendar = ({
   const pagarYConfirmarTurno = async () => {
     if (!turnoAConfirmar) return;
     const dniPaciente = await getDniPaciente();
+    console.log(dniPaciente);
     if (!dniPaciente) {
       setShowMissingDni(true);
       return;

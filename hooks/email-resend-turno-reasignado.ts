@@ -17,17 +17,18 @@ export async function sendAvisoReasignacion({
   email_paciente: string;
 }) {
   try {
-    const fechaFormateada = new Date(fecha_turno_nuevo).toLocaleString(
-      "es-ES",
-      {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      },
-    );
+    // Añadir 3 horas (convertir UTC -> UTC-3) y formatear en horario Argentina
+    const original = new Date(fecha_turno_nuevo);
+    const argentinaMs = original.getTime() + 3 * 60 * 60 * 1000;
+    const argentinaDate = new Date(argentinaMs);
+    const fechaFormateada = argentinaDate.toLocaleString("es-AR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
 
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
