@@ -143,7 +143,7 @@ export async function PUT(request: NextRequest) {
       descripcion,
       telefono_contacto,
       nombre, // alias opcional para "descripcion"
-      sitio_web, // NUEVO: actualizar sitio_web
+      sitioWeb, // NUEVO: actualizar sitio_web
     } = body as {
       id?: string | number;
       estado?: string;
@@ -151,7 +151,7 @@ export async function PUT(request: NextRequest) {
       descripcion?: string;
       telefono_contacto?: string | null;
       nombre?: string;
-      sitio_web?: string | null;
+      sitioWeb?: string | null;
     };
 
     if (!id) {
@@ -170,7 +170,7 @@ export async function PUT(request: NextRequest) {
     );
     const hasSitioWeb = Object.prototype.hasOwnProperty.call(
       body,
-      "sitio_web",
+      "sitioWeb",
     );
 
     const updateData: Record<string, any> = {};
@@ -256,10 +256,10 @@ export async function PUT(request: NextRequest) {
 
     // 5) Sitio web (nuevo)
     if (hasSitioWeb) {
-      if (typeof sitio_web === "string") {
-        const s = sitio_web.trim();
+      if (typeof sitioWeb === "string") {
+        const s = sitioWeb.trim();
         updateData.sitio_web = s === "" ? null : s;
-      } else if (sitio_web === null) {
+      } else if (sitioWeb === null) {
         updateData.sitio_web = null;
       }
     }

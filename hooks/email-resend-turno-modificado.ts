@@ -24,7 +24,7 @@ export async function sendAvisoModificado({
           <p style="color: #64748b; margin: 5px 0;">Sistema de Turnos</p>
         </div>
         <div style="background: #d1fae5; border-left: 4px solid #059669; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-          <h2 style="color: #065f46; margin-top: 0;"> Tu turno fue reasignado!</h2>
+          <h2 style="color: #065f46; margin-top: 0;"> Turno modificado</h2>
           <p style="color: #065f46; margin-bottom: 0;">
             Hola ${nombre_paciente} ${apellido_paciente}, tu turno ha sido modificado con éxito:
           </p>

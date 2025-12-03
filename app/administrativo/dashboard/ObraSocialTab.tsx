@@ -70,7 +70,7 @@ export const ObraSocialTab = () => {
 
   // Estados de edición
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editNombre, setEditNombre] = useState("");
+  const [editSitioWeb, setEditSitioWeb] = useState("");
   const [editTelefono, setEditTelefono] = useState("");
 
   const loadObras = async () => {
@@ -185,7 +185,7 @@ export const ObraSocialTab = () => {
   // Abrir diálogo de edición
   const openEdit = (obra: ObraSocial) => {
     setSelectedObra(obra);
-    setEditNombre(safeTrim(obra.descripcion));
+    setEditSitioWeb(safeTrim(obra.sitio_web));
     setEditTelefono(safeTrim(obra.telefono_contacto));
     setShowEditDialog(true);
   };
@@ -194,27 +194,27 @@ export const ObraSocialTab = () => {
   const handleSaveEdit = async () => {
     if (!selectedObra) return;
 
-    const nombreOriginal = safeTrim(selectedObra.descripcion);
+    const sitioWebOriginal = safeTrim(selectedObra.sitio_web);
     const telefonoOriginal = safeTrim(selectedObra.telefono_contacto);
 
-    const nombreNuevo = safeTrim(editNombre);
+    const sitioWebNuevo = safeTrim(editSitioWeb);
     const telefonoNuevo = safeTrim(editTelefono);
 
     const payload: Record<string, any> = { id: selectedObra.id_obra };
 
-    if (nombreNuevo !== nombreOriginal) {
-      if (!nombreNuevo) {
-        setError("El nombre (descripción) no puede quedar vacío.");
+    if (sitioWebNuevo !== sitioWebOriginal) {
+      if (!sitioWebNuevo) {
+        setError("El sitio web (descripción) no puede quedar vacío.");
         return;
       }
-      payload.descripcion = nombreNuevo;
+      payload.sitioWeb = sitioWebNuevo;
     }
 
     if (telefonoNuevo !== telefonoOriginal) {
       payload.telefono_contacto = telefonoNuevo === "" ? null : telefonoNuevo;
     }
 
-    if (!payload.descripcion && !payload.hasOwnProperty("telefono_contacto")) {
+    if (!payload.sitioWeb && !payload.hasOwnProperty("telefono_contacto")) {
       setError("No hay cambios para guardar.");
       return;
     }
@@ -236,7 +236,7 @@ export const ObraSocialTab = () => {
 
       setShowEditDialog(false);
       setSelectedObra(null);
-      setEditNombre("");
+      setEditSitioWeb("");
       setEditTelefono("");
 
       await loadObras();
@@ -461,19 +461,19 @@ export const ObraSocialTab = () => {
           <DialogHeader>
             <DialogTitle>Modificar Obra Social</DialogTitle>
             <DialogDescription>
-              Actualizá el nombre y el teléfono de{" "}
+              Actualizá el sitio web y el teléfono de{" "}
               <strong>{safeTrim(selectedObra?.descripcion)}</strong>.
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="edit-nombre">Nombre</Label>
+              <Label htmlFor="edit-nombre">Sitio Web</Label>
               <Input
                 id="edit-nombre"
-                value={editNombre}
-                onChange={(e) => setEditNombre(e.target.value)}
-                placeholder="Nombre de la obra social"
+                value={editSitioWeb}
+                onChange={(e) => setEditSitioWeb(e.target.value)}
+                placeholder="Sitio Web de la obra social"
               />
             </div>
 
@@ -497,7 +497,7 @@ export const ObraSocialTab = () => {
               onClick={() => {
                 setShowEditDialog(false);
                 setSelectedObra(null);
-                setEditNombre("");
+                setEditSitioWeb("");
                 setEditTelefono("");
                 setError(null);
               }}
